@@ -22,8 +22,9 @@ namespace VkAPI
             WebRequest reqGET = WebRequest.Create(url);
             WebResponse resp = reqGET.GetResponse();
             Stream stream = resp.GetResponseStream();
-            StreamReader sr = new System.IO.StreamReader(stream);
+            StreamReader sr = new StreamReader(stream);
             string s = sr.ReadToEnd();
+            sr.Dispose();
             return s;
         }
 
@@ -39,6 +40,7 @@ namespace VkAPI
             data = new Dictionary<string, string>();
             // Удаляет в строке ненужные символы
             string[] jsonLine;
+            char s;
             for (int i = 0; i < jsonLines.Length; i++)
             {
                 if (i < jsonLines.Length - 1)
@@ -48,7 +50,8 @@ namespace VkAPI
                 }
 
                 jsonLine = jsonLines[i].Split(new char[] { ':' }, 2);
-                if (jsonLine[1].Substring(0, 1) == "\"")
+                s = jsonLine[1][0];
+                if (s == '"')
                 {
                     if (jsonLine[1].Length == 2)
                     {
@@ -83,31 +86,33 @@ namespace VkAPI
             int basket = -1;
             int quotes = 0;
             string json = "";
+            char s;
             for (int i = 0; i < str.Length; i++)
             {
                 json += str[i];
 
                 // Отслеживаем уровень, чтобы не попасть во внутрений словарь
-                if ((str.Substring(i, 1) == "{") | (str.Substring(i, 1) == "["))
+                s = str[i];
+                if ((s == '{') | (s == '['))
                 {
                     basket++;
                 }
-                else if ((str.Substring(i, 1) == "}") | (str.Substring(i, 1) == "]"))
+                else if ((s == '}') | (s == ']'))
                 {
                     basket--;
                 }
 
                 // Отслеживаем закрытость ковычек
-                if ((quotes == 0) & (str.Substring(i, 1) == "\""))
+                if ((quotes == 0) & (s == '"'))
                 {
                     quotes++;
                 }
-                else if ((quotes == 1) & (str.Substring(i, 1) == "\""))
+                else if ((quotes == 1) & (s == '"'))
                 {
                     quotes--;
                 }
 
-                if (((str.Substring(i, 1) == ",") & (basket == 0) & (quotes == 0)) | (i == str.Length))
+                if (((s == ',') & (basket == 0) & (quotes == 0)) | (i == str.Length))
                 {
                     json += "\n";
                 }
