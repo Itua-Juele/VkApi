@@ -36,6 +36,16 @@ namespace VkAPI
         /// Содержит последний ответ об ошибке сервера
         /// </summary>
         public Dictionary<string, string> Error;
+        /// <summary>
+        /// Список фоловеров, где 1-й ключ это id фоловера, а дальше информация о нем. 
+        /// Используйте метод users.GetFollowers, чтобы заполнить его
+        /// </summary>
+        public Dictionary<string, Dictionary<string, string>> Followers;
+        /// <summary>
+        /// Количество подписчиков у данного пользователя
+        /// Используйте метод users.GetFollowers, чтобы заполнить его
+        /// </summary>
+        public int countFollowers;
 
         /// <summary>
         /// Конструктор класса VkUser, в котором сразу выясняются параметры FirstName и LastName
@@ -238,7 +248,7 @@ namespace VkAPI
             StreamReader sr = new StreamReader(stream);
             string s = sr.ReadToEnd();
             sr.Dispose();
-            return s;
+            return s.Replace("\\/", "/");
         }
     }
 }
