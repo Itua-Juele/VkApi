@@ -141,7 +141,7 @@ namespace VkAPI
         /// <param name="data">словар для заполнения</param>
         /// <param name="json">ответ сервера в json формате, без внешнего словаря response или error</param>
         /// <param name="key">значение, которое добавляется перед ключем</param>
-        public static void FillDictionary(ref Dictionary<string, string> data, string json, string key)
+        public static void FillDictionary(ref Dictionary<string, string> data, string json, string key = "")
         {
             string[] jsonLines = SerializeJson(json).Split('\n');
             if (data == null)
@@ -198,14 +198,12 @@ namespace VkAPI
         private static string SerializeJson(string str)
         // Преобразует строку в Json формат <string, string>
         {
-            int basket = -1;
+            int basket = 0;
             int quotes = 0;
             string json = "";
             char s;
-            for (int i = 0; i < str.Length; i++)
+            for (int i = 1; i < str.Length - 1; i++)
             {
-                json += str[i];
-
                 // Отслеживаем уровень, чтобы не попасть во внутрений словарь
                 s = str[i];
                 if ((s == '{') | (s == '['))
@@ -227,12 +225,13 @@ namespace VkAPI
                     quotes--;
                 }
 
-                if (((s == ',') & (basket == 0) & (quotes == 0)) | (i == str.Length))
+                json += s;
+                if ((s == ',') & (basket == 0) & (quotes == 0))
                 {
                     json += "\n";
                 }
             }
-            return json.Substring(1, json.Length - 2);
+            return json;
         }
 
         /// <summary>

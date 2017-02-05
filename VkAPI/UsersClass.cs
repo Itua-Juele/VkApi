@@ -1,9 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text.RegularExpressions;
-using System.Net;
-using System.IO;
 
 namespace VkAPI
 {
@@ -127,9 +124,8 @@ namespace VkAPI
             }
 
             // Метод users.getFollowers |--------------------------------------
-            private static Dictionary<string, string>[] VkGetFollowers(string url)
+            private static Dictionary<string, string>[] VkGetFollowers(string dataJson)
             {
-                string dataJson = VkJson.getResponse(url);
                 Dictionary<string, string>[] data;
                 if (dataJson.Substring(2, 5) == "error")
                 {
@@ -186,7 +182,7 @@ namespace VkAPI
             {
                 string url = String.Format("https://api.vk.com/method/users.getFollowers?user_id={0}&offset={1}&count={2}&name_case={3}&version=5.62",
                     id, offset, count, name_case);
-                return VkGetFollowers(url);
+                return VkGetFollowers(VkJson.getResponse(url));
             }
             /// <summary>
             /// Возвращает список идентификаторов пользователей, которые являются подписчиками пользователя. 
@@ -202,7 +198,7 @@ namespace VkAPI
             {
                 string url = String.Format("https://api.vk.com/method/users.getFollowers?user_id={0}&offset={1}&count={2}&fields={3}&name_case={4}&version=5.62",
                     id, offset, count, String.Join(",", fields), name_case);
-                return VkGetFollowers(url);
+                return VkGetFollowers(VkJson.getResponse(url));
             }
             /// <summary>
             /// Возвращает список идентификаторов пользователей, которые являются подписчиками пользователя
@@ -217,7 +213,7 @@ namespace VkAPI
                    user.id, offset, count);
                 url += "&fields=first_name,last_name";
                 url += "&name_case=" + name_case + "&version=5.62";
-                Dictionary<string, string>[] data = VkGetFollowers(url);
+                Dictionary<string, string>[] data = VkGetFollowers(VkJson.getResponse(url));
                 if (data[0].ContainsKey("error_code"))
                 {
                     user.Error = new Dictionary<string, string>(data[0]);
@@ -258,7 +254,7 @@ namespace VkAPI
                     url += "&fields=" + String.Join(",", fields);
                 }
                 url += "&name_case=" + name_case + "&version=5.62";
-                Dictionary<string, string>[] data = VkGetFollowers(url);
+                Dictionary<string, string>[] data = VkGetFollowers(VkJson.getResponse(url));
                 if (data[0].ContainsKey("error_code"))
                 {
                     user.Error = new Dictionary<string, string>(data[0]);
@@ -277,6 +273,87 @@ namespace VkAPI
                         }
                     }
                 }
+            }
+
+            // Метод users.getNearby |-----------------------------------------
+            private static Dictionary<string, string>[] VkGetNearby(string dataJson)
+            {
+                char s = dataJson[12];
+                if (s == '[')
+                {
+                    dataJson = dataJson.Substring(13, dataJson.Length - 14);
+                    string count = "";
+                    foreach (char x in dataJson)
+                    {
+                        if (x == ',')
+                        {
+                            break;
+                        }
+                        count += x;
+                    }
+                    string[] users = VkJson.ListDictionary("[" + dataJson.Substring(count.Length + 1));
+                    Dictionary<string, string>[] data = new Dictionary<string, string>[1 + users.Length];
+                    data[0] = new Dictionary<string, string>();
+                    data[0].Add("count", count);
+                    if (users.Length > 0)
+                    {
+                        for (int i = 0; i < users.Length; i++)
+                        {
+                            VkJson.FillDictionary(ref data[i + 1], users[i]);
+                        }
+                    }
+                    return data;
+                }
+                else
+                {
+                    return VkGetFollowers(dataJson);
+                }
+            }
+            /// <summary>
+            /// Индексирует текущее местоположение пользователя и возвращает список пользователей, которые находятся вблизи
+            /// </summary>
+            /// <param name="access_token">Ключ доступа</param>
+            /// <param name="latitude">географическая широта точки, в которой в данный момент находится пользователь, заданная в градусах (от -90 до 90)</param>
+            /// <param name="longitude">географическая долгота точки, в которой в данный момент находится пользователь, заданная в градусах (от -180 до 180)</param>
+            /// <param name="accuracy">точность текущего местоположения пользователя в метрах</param>
+            /// <param name="timeout">время в секундах через которое пользователь должен перестать находиться через поиск по местоположению</param>
+            /// <param name="radius">тип радиуса зоны поиска (от 1 до 4) </param>
+            /// <param name="name_case">падеж для склонения имени и фамилии пользователя</param>
+            /// <returns></returns>
+            public static Dictionary<string, string>[] GetNearby(string access_token, float latitude, float longitude, int accuracy = 1,
+                int timeout = 7200, int radius = 1, string name_case = "nom")
+            {
+                string url = String.Format("https://api.vk.com/method/users.getNearby?access_token={0}&latitude={1}&longitude={2}",
+                   access_token, latitude.ToString().Replace(",", "."), longitude.ToString().Replace(",", "."));
+                url += "&accuracy=" + accuracy;
+                url += "&timeout=" + timeout;
+                url += "&radius=" + radius;
+                url += "&name_case=" + name_case + "&version=5.62";
+                return VkGetNearby(VkJson.getResponse(url));
+            }
+            /// <summary>
+            /// Индексирует текущее местоположение пользователя и возвращает список пользователей, которые находятся вблизи
+            /// </summary>
+            /// <param name="access_token">Ключ доступа</param>
+            /// <param name="latitude">географическая широта точки, в которой в данный момент находится пользователь, заданная в градусах (от -90 до 90)</param>
+            /// <param name="longitude">географическая долгота точки, в которой в данный момент находится пользователь, заданная в градусах (от -180 до 180)</param>
+            /// <param name="accuracy">точность текущего местоположения пользователя в метрах</param>
+            /// <param name="timeout">время в секундах через которое пользователь должен перестать находиться через поиск по местоположению</param>
+            /// <param name="radius">тип радиуса зоны поиска (от 1 до 4) </param>
+            /// <param name="fields">список дополнительных полей профилей, которые необходимо вернуть</param>
+            /// <param name="name_case">падеж для склонения имени и фамилии пользователя</param>
+            /// <returns></returns>
+            public static Dictionary<string, string>[] GetNearby(string access_token, float latitude, float longitude,
+                string[] fields, int accuracy = 1, int timeout = 7200, int radius = 1, string name_case = "nom")
+            {
+                string url = String.Format("https://api.vk.com/method/users.getNearby?access_token={0}&latitude={1}&longitude={2}",
+                   access_token, latitude.ToString().Replace(",", "."), longitude.ToString().Replace(",", "."));
+                url += "&accuracy=" + accuracy;
+                url += "&timeout=" + timeout;
+                url += "&radius=" + radius;
+                url += "&fields=" + String.Join(",", fields);
+                url += "&name_case=" + name_case + "&version=5.62";
+                return VkGetNearby(VkJson.getResponse(url));
             }
         }
     }
