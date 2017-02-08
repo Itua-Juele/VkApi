@@ -15,25 +15,6 @@ namespace VkAPI
         public static class Users
         {
             // Метод user.get |------------------------------------------------
-            private static Dictionary<string, string>[] VkGet(string url)
-            {
-                string dataJson = VkJson.getResponse(url);
-                Dictionary<string, string>[] data;
-                if (dataJson.Substring(2, 5) == "error")
-                {
-                    data = new Dictionary<string, string>[1] { VkJson.ResponseError(dataJson) };
-                }
-                else
-                {
-                    string[] response = VkJson.ListDictionary(dataJson.Substring(12, dataJson.Length - 13));
-                    data = new Dictionary<string, string>[response.Length];
-                    for (int i = 0; i < response.Length; i++)
-                    {
-                        VkJson.FillDictionary(ref data[i], response[i], "");
-                    }
-                }
-                return data;
-            }
             /// <summary>
             /// Возвращает общую информацию о пользователях
             /// </summary>
@@ -44,7 +25,7 @@ namespace VkAPI
             {
                 string url = String.Format("https://api.vk.com/method/users.get?user_ids={0}&name_case={1}",
                     String.Join(",", ids), name_case);
-                return VkGet(url);
+                return VkJson.JsonToListDictionary(url);
             }
             /// <summary>
             /// Возвращает расширеную информацию о пользователях
@@ -57,7 +38,7 @@ namespace VkAPI
             {
                 string url = String.Format("https://api.vk.com/method/users.get?user_ids={0}&fields={1}&name_case={2}",
                     String.Join(",", ids), String.Join(",", fields), name_case);
-                return VkGet(url);
+                return VkJson.JsonToListDictionary(url);
             }
             /// <summary>
             /// Заносит в класс VkUser общую информацию о пользователе
@@ -68,7 +49,7 @@ namespace VkAPI
             {
                 string url = String.Format("https://api.vk.com/method/users.get?user_ids={0}&name_case={1}",
                     user.id, name_case);
-                Dictionary<string, string> data = VkGet(url)[0];
+                Dictionary<string, string> data = VkJson.JsonToListDictionary(url)[0];
                 if (data.ContainsKey("error_code"))
                 {
                     user.Error = new Dictionary<string, string>(data);
@@ -92,7 +73,7 @@ namespace VkAPI
             {
                 string url = String.Format("https://api.vk.com/method/users.get?user_ids={0}&fields={1}&name_case={2}",
                     user.id, String.Join(",", fields), name_case);
-                Dictionary<string, string> data = VkGet(url)[0];
+                Dictionary<string, string> data = VkJson.JsonToListDictionary(url)[0];
                 if (data.ContainsKey("error_code"))
                 {
                     user.Error = new Dictionary<string, string>(data);
@@ -124,52 +105,6 @@ namespace VkAPI
             }
 
             // Метод users.getFollowers |--------------------------------------
-            private static Dictionary<string, string>[] VkGetFollowers(string dataJson)
-            {
-                Dictionary<string, string>[] data;
-                if (dataJson.Substring(2, 5) == "error")
-                {
-                    data = new Dictionary<string, string>[1] { VkJson.ResponseError(dataJson) };
-                }
-                else
-                {
-                    string count = "0";
-                    char s;
-                    for (int i = 21; i < dataJson.Length; i++)
-                    {
-                        s = dataJson[i];
-                        if (s == ',') // ищем количество фоловеров
-                        {
-                            count = dataJson.Substring(21, i - 21);
-                        }
-                        if (s == '[')
-                        {
-                            dataJson = dataJson.Substring(i, dataJson.Length - i - 2);
-                            break;
-                        }
-                    }
-                    s = dataJson[1];
-                    if (s == '{')
-                    {
-                        string[] items = VkJson.ListDictionary(dataJson);
-                        data = new Dictionary<string, string>[items.Length + 1];
-                        data[0] = new Dictionary<string, string>();
-                        data[0].Add("count", count);
-                        for (int i = 0; i < items.Length; i++)
-                        {
-                            //data[i + 1] = new Dictionary<string, string>();
-                            VkJson.FillDictionary(ref data[i + 1], items[i], "");
-                        }
-                    }
-                    else
-                    {
-                        data = new Dictionary<string, string>[1] { new Dictionary<string, string>() };
-                        data[0].Add("count", count);
-                        data[0].Add("items", dataJson.Substring(1, dataJson.Length - 2));
-                    }
-                }
-                return data;
-            }
             /// <summary>
             /// Возвращает список идентификаторов пользователей, которые являются подписчиками пользователя. 
             /// </summary>
@@ -182,7 +117,7 @@ namespace VkAPI
             {
                 string url = String.Format("https://api.vk.com/method/users.getFollowers?user_id={0}&offset={1}&count={2}&name_case={3}&version=5.62",
                     id, offset, count, name_case);
-                return VkGetFollowers(VkJson.getResponse(url));
+                return VkJson.JsonToListDictionary(url, "items");
             }
             /// <summary>
             /// Возвращает список идентификаторов пользователей, которые являются подписчиками пользователя. 
@@ -198,7 +133,7 @@ namespace VkAPI
             {
                 string url = String.Format("https://api.vk.com/method/users.getFollowers?user_id={0}&offset={1}&count={2}&fields={3}&name_case={4}&version=5.62",
                     id, offset, count, String.Join(",", fields), name_case);
-                return VkGetFollowers(VkJson.getResponse(url));
+                return VkJson.JsonToListDictionary(url, "items");
             }
             /// <summary>
             /// Возвращает список идентификаторов пользователей, которые являются подписчиками пользователя
@@ -213,7 +148,7 @@ namespace VkAPI
                    user.id, offset, count);
                 url += "&fields=first_name,last_name";
                 url += "&name_case=" + name_case + "&version=5.62";
-                Dictionary<string, string>[] data = VkGetFollowers(VkJson.getResponse(url));
+                Dictionary<string, string>[] data = VkJson.JsonToListDictionary(url, "items");
                 if (data[0].ContainsKey("error_code"))
                 {
                     user.Error = new Dictionary<string, string>(data[0]);
@@ -254,7 +189,7 @@ namespace VkAPI
                     url += "&fields=" + String.Join(",", fields);
                 }
                 url += "&name_case=" + name_case + "&version=5.62";
-                Dictionary<string, string>[] data = VkGetFollowers(VkJson.getResponse(url));
+                Dictionary<string, string>[] data = VkJson.JsonToListDictionary(url, "items");
                 if (data[0].ContainsKey("error_code"))
                 {
                     user.Error = new Dictionary<string, string>(data[0]);
@@ -276,39 +211,6 @@ namespace VkAPI
             }
 
             // Метод users.getNearby |-----------------------------------------
-            private static Dictionary<string, string>[] VkGetNearby(string dataJson)
-            {
-                char s = dataJson[12];
-                if (s == '[')
-                {
-                    dataJson = dataJson.Substring(13, dataJson.Length - 14);
-                    string count = "";
-                    foreach (char x in dataJson)
-                    {
-                        if (x == ',')
-                        {
-                            break;
-                        }
-                        count += x;
-                    }
-                    string[] users = VkJson.ListDictionary("[" + dataJson.Substring(count.Length + 1));
-                    Dictionary<string, string>[] data = new Dictionary<string, string>[1 + users.Length];
-                    data[0] = new Dictionary<string, string>();
-                    data[0].Add("count", count);
-                    if (users.Length > 0)
-                    {
-                        for (int i = 0; i < users.Length; i++)
-                        {
-                            VkJson.FillDictionary(ref data[i + 1], users[i]);
-                        }
-                    }
-                    return data;
-                }
-                else
-                {
-                    return VkGetFollowers(dataJson);
-                }
-            }
             /// <summary>
             /// Индексирует текущее местоположение пользователя и возвращает список пользователей, которые находятся вблизи
             /// </summary>
@@ -329,7 +231,7 @@ namespace VkAPI
                 url += "&timeout=" + timeout;
                 url += "&radius=" + radius;
                 url += "&name_case=" + name_case + "&version=5.62";
-                return VkGetNearby(VkJson.getResponse(url));
+                return VkJson.JsonToListDictionary(url, "items");
             }
             /// <summary>
             /// Индексирует текущее местоположение пользователя и возвращает список пользователей, которые находятся вблизи
@@ -353,7 +255,7 @@ namespace VkAPI
                 url += "&radius=" + radius;
                 url += "&fields=" + String.Join(",", fields);
                 url += "&name_case=" + name_case + "&version=5.62";
-                return VkGetNearby(VkJson.getResponse(url));
+                return VkJson.JsonToListDictionary(url, "items");
             }
         }
     }

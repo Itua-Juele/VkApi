@@ -90,6 +90,120 @@ namespace VkAPI
     static class VkJson
     {
         /// <summary>
+        /// Преобразует json строку в список из словарей
+        /// </summary>
+        /// <param name="url"></param>
+        /// <param name="region">переменная, которой находится словарь</param>
+        /// <returns></returns>
+        internal static Dictionary<string, string>[] JsonToListDictionary(string url, string region = "response")
+        {
+            string dataJson = VkJson.getResponse(url);
+            if (region == "response")
+            {
+                return response(dataJson);
+            }
+            else // items
+            {
+                return items(dataJson);
+            }
+        }
+
+        private static Dictionary<string, string>[] response(string dataJson)
+        {
+            Dictionary<string, string>[] data;
+            if (dataJson.Substring(2, 5) == "error")
+            {
+                data = new Dictionary<string, string>[1] { VkJson.ResponseError(dataJson) };
+            }
+            else
+            {
+                string[] response = VkJson.ListDictionary(dataJson.Substring(12, dataJson.Length - 13));
+                data = new Dictionary<string, string>[response.Length];
+                for (int i = 0; i < response.Length; i++)
+                {
+                    VkJson.FillDictionary(ref data[i], response[i], "");
+                }
+            }
+            return data;
+        }
+
+        private static Dictionary<string, string>[] items(string dataJson)
+        {
+            char s = dataJson[12];
+            Dictionary<string, string>[] data;
+            if (s == '[')
+            {
+                dataJson = dataJson.Substring(13, dataJson.Length - 14);
+                string count = "";
+                foreach (char x in dataJson)
+                {
+                    if (x == ',')
+                    {
+                        break;
+                    }
+                    count += x;
+                }
+                string[] users = VkJson.ListDictionary("[" + dataJson.Substring(count.Length + 1));
+                data = new Dictionary<string, string>[1 + users.Length];
+                data[0] = new Dictionary<string, string>();
+                data[0].Add("count", count);
+                if (users.Length > 0)
+                {
+                    for (int i = 0; i < users.Length; i++)
+                    {
+                        VkJson.FillDictionary(ref data[i + 1], users[i]);
+                    }
+                }
+                return data;
+            }
+            else
+            {
+                if (dataJson.Substring(2, 5) == "error")
+                {
+                    data = new Dictionary<string, string>[1] { VkJson.ResponseError(dataJson) };
+                }
+                else
+                {
+                    string count = "0";
+                    for (int i = 21; i < dataJson.Length; i++)
+                    {
+                        s = dataJson[i];
+                        if (s == ',') // ищем количество фоловеров
+                        {
+                            count = dataJson.Substring(21, i - 21);
+                        }
+                        if (s == '[')
+                        {
+                            dataJson = dataJson.Substring(i, dataJson.Length - i - 2);
+                            break;
+                        }
+                    }
+                    s = dataJson[1];
+                    if (s == '{')
+                    {
+                        string[] items = VkJson.ListDictionary(dataJson);
+                        data = new Dictionary<string, string>[items.Length + 1];
+                        data[0] = new Dictionary<string, string>();
+                        data[0].Add("count", count);
+                        for (int i = 0; i < items.Length; i++)
+                        {
+                            //data[i + 1] = new Dictionary<string, string>();
+                            VkJson.FillDictionary(ref data[i + 1], items[i], "");
+                        }
+                    }
+                    else
+                    {
+                        data = new Dictionary<string, string>[1] { new Dictionary<string, string>() };
+                        data[0].Add("count", count);
+                        data[0].Add("items", dataJson.Substring(1, dataJson.Length - 2));
+                    }
+                }
+                return data;
+            }
+        }
+
+        // Oбщие методы формирования словаря |---------------------------------
+        /// <summary>
         /// Возвращает список из словарей, содержащихся в строке
         /// </summary>
         /// <param name="dataJson">строка вида [словарь, словарь..]</param>
