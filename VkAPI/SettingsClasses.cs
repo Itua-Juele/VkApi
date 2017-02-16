@@ -129,26 +129,18 @@ namespace VkAPI
         private static Dictionary<string, string>[] items(string dataJson, string key)
         {
             char s;
-            dataJson = SearchSubDictionary("response", dataJson);
+            dataJson = GetSubDictionary("response", dataJson);
             int pos_key = SearchKey(key, dataJson);
             Dictionary<string, string>[] data;
             if (pos_key != -1)
             {
-                int[] set = SearchList(pos_key, dataJson);
+                int[] set = GetSettingsList(pos_key - 1, dataJson);
                 string count = "";
                 pos_key = SearchKey("count", dataJson);
                 if (pos_key != -1)
                 {
-                    for (int i = pos_key + 5; i < dataJson.Length; i++)
-                    {
-                        s = dataJson[i];
-                        if (s == ',')
-                        {
-                            dataJson = dataJson.Substring(set[0], set[1]);
-                            break;
-                        }
-                        count += s;
-                    }
+                    count = GetValueDictionary("count", dataJson);
+                    dataJson = dataJson.Substring(set[0], set[1]);
                 }
                 else
                 {
@@ -184,64 +176,166 @@ namespace VkAPI
             }
         }
 
-        internal static int SearchKey(string key ,string str)
+        // Методы поддержки |--------------------------------------------------
+        public static string GetValueDictionary(string key, string json)
+        {
+            int pos = SearchKey(key, json);
+            if (pos != -1)
+            {
+                char s = json[pos + key.Length + 1];
+                if (s == '{')
+                {
+                    json = GetSubDictionary(key, json);
+                }
+                else if (s == '[')
+                {
+                    json = GetListDictionary(key, json);
+                }
+                else
+                {
+                    json = json.Substring(pos + key.Length + 2).Split(',')[0];
+                    s = json[json.Length - 1];
+                    if (s == '}')
+                    {
+                        json = json.Substring(0, json.Length - 1);
+                    }
+                }
+            }
+            else
+            {
+                json = "not found";
+            }
+            return json;
+        }
+
+        /// <summary>
+        /// Возваращает позицию данного ключа
+        /// </summary>
+        /// <param name="key">ключ, позицию которого нужно найти</param>
+        /// <param name="json">словарь, в виде json строки</param>
+        /// <returns>Позиция данного ключа</returns>
+        internal static int SearchKey(string key, string json)
         {
             int braskets = 0;
             int position = -1;
-            int len = str.Length - key.Length;
+            int quotes = 0;
+            int len = json.Length - key.Length - 1;
             char s;
             for (int i = 1; i < len; i++)
             {
-                s = str[i];
-                if ((s == '{') | (s == '['))
+                s = json[i];
+                if ((s == '"') & (quotes == 0))
                 {
-                    braskets++;
+                    quotes++;
                 }
-                else if ((s == '}') | (s == ']'))
+                else if (s == '"')
                 {
-                    braskets--;
+                    quotes--;
                 }
-
-                if ((braskets == 0) & (key == str.Substring(i, key.Length)))
+                if (quotes == 0)
                 {
-                    position = i;
-                    break;
+                    if ((s == '{') | (s == '['))
+                    {
+                        braskets++;
+                    }
+                    else if ((s == '}') | (s == ']'))
+                    {
+                        braskets--;
+                    }
+                }
+                else
+                {
+                    if ((braskets == 0) & (key == json.Substring(i, key.Length)))
+                    {
+                        s = json[i + key.Length + 1];
+                        if (s == ':')
+                        {
+                            position = i;
+                            break;
+                        }
+                    }
                 }
             }
-
             return position;
         }
 
-        internal static int[] SearchList(int begin, string str)
+        /// <summary>
+        /// Возвращает начало позиции и длину первого найденного списка начиная с данной позиции
+        /// </summary>
+        /// <param name="begin">позиция, от которой идет начало поиска</param>
+        /// <param name="str">Место поиска</param>
+        /// <returns>[начало, длина]</returns>
+        private static int[] GetSettingsList(int begin, string str)
         {
             int braskets = 0;
             int[] settings_list = new int[2] { -1, -1 };
+            int quotes = 0;
             char s;
             for (int i = begin; i < str.Length; i++)
             {
                 s = str[i];
-                if (s == '[')
+                if ((s == '"') & (quotes == 0))
                 {
-                    braskets++;
-                    if (braskets == 1)
-                    {
-                        settings_list[0] = i;
-                    }
+                    quotes++;
                 }
-                else if (s == ']')
+                else if (s == '"')
                 {
-                    braskets--;
-                    if ((braskets == 0) & (settings_list[0] != -1))
+                    quotes--;
+                }
+                if (quotes == 0)
+                {
+                    if (s == '[')
                     {
-                        settings_list[1] = i - settings_list[0] + 1;
-                        break;
+                        braskets++;
+                        if (braskets == 1)
+                        {
+                            settings_list[0] = i;
+                        }
+                    }
+                    else if (s == ']')
+                    {
+                        braskets--;
+                        if ((braskets == 0) & (settings_list[0] != -1))
+                        {
+                            settings_list[1] = i - settings_list[0] + 1;
+                            break;
+                        }
                     }
                 }
             }
             return settings_list;
         }
 
-        internal static string SearchSubDictionary(string key, string dictionary)
+        /// <summary>
+        /// возвращает массив содержащийся по данному ключу
+        /// </summary>
+        /// <param name="key">ключ, в котором содержится список</param>
+        /// <param name="json">словарь, в виде json строки</param>
+        /// <returns>Список содержащийся в ключе</returns>
+        private static string GetListDictionary(string key, string json)
+        {
+            int pos = SearchKey(key, json);
+            int[] setList;
+            if (pos != -1)
+            {
+                setList = GetSettingsList(pos, json);
+                if (setList[0] != -1 & setList[1] != -1)
+                {
+                    json = json.Substring(setList[0], setList[1]);
+                }
+                else
+                {
+                    json = "not found";
+                }
+            }
+            else
+            {
+                json = "not found";
+            }
+            return json;
+        }
+
+        private static string GetSubDictionary(string key, string dictionary)
         {
             int braskets = 0;
             int begin = 0;
@@ -271,6 +365,10 @@ namespace VkAPI
                     }
                 }
             }
+            else
+            {
+                dictionary = "not found";
+            }
             return dictionary;
         }
 
@@ -285,21 +383,38 @@ namespace VkAPI
             int basket = 0;
             string str = "";
             char s;
+            int quotes = 0;
             for (int i = 1; i < dataJson.Length - 1; i++)
             {
                 s = dataJson[i];
-                if (s == '{')
+                if ((s == '"') & (quotes == 0))
                 {
-                    basket++;
+                    quotes++;
                 }
-                else if (s == '}')
+                else if (s == '"')
                 {
-                    basket--;
+                    quotes--;
                 }
+                if (quotes == 0)
+                {
+                    s = dataJson[i];
+                    if (s == '{')
+                    {
+                        basket++;
+                    }
+                    else if (s == '}')
+                    {
+                        basket--;
+                    }
 
-                if ((s == ',') & (basket == 0))
-                {
-                    str += "\n";
+                    if ((s == ',') & (basket == 0))
+                    {
+                        str += "\n";
+                    }
+                    else
+                    {
+                        str += s;
+                    }
                 }
                 else
                 {
