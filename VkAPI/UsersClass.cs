@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace VkAPI
 {
@@ -159,11 +158,13 @@ namespace VkAPI
                     if (data.Length > 1)
                     {
                         user.Followers = new Dictionary<string, Dictionary<string, string>>();
-                        string key;
                         for (int i = 1; i < data.Length; i++)
                         {
-                            key = data[i].Keys.ToArray<string>()[0];
-                            user.Followers.Add(data[i][key], new Dictionary<string, string>(data[i]));
+                            foreach (string key in data[i].Keys)
+                            {
+                                user.Followers.Add(data[i][key], new Dictionary<string, string>(data[i]));
+                                break;
+                            }
                         }
                     }
                 }
@@ -200,11 +201,13 @@ namespace VkAPI
                     if (data.Length > 1)
                     {
                         user.Followers = new Dictionary<string, Dictionary<string, string>>();
-                        string key;
                         for (int i = 1; i < data.Length; i++)
                         {
-                            key = data[i].Keys.ToArray<string>()[0];
-                            user.Followers.Add(data[i][key], new Dictionary<string, string>(data[i]));
+                            foreach (string key in data[i].Keys)
+                            {
+                                user.Followers.Add(data[i][key], new Dictionary<string, string>(data[i]));
+                                break;
+                            }
                         }
                     }
                 }
@@ -256,6 +259,13 @@ namespace VkAPI
                 url += "&fields=" + String.Join(",", fields);
                 url += "&name_case=" + name_case + "&version=5.62";
                 return VkJson.JsonToListDictionary(url, "items");
+            }
+
+            // Метод users.getSubscriptions |----------------------------------
+
+            public static void GetSubscriptions(string id)
+            {
+
             }
         }
     }

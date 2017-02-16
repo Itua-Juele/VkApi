@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text.RegularExpressions;
 using System.Net;
 using System.IO;
@@ -93,18 +92,18 @@ namespace VkAPI
         /// Преобразует json строку в список из словарей
         /// </summary>
         /// <param name="url"></param>
-        /// <param name="region">переменная, которой находится словарь</param>
+        /// <param name="key">переменная, которой находится словарь</param>
         /// <returns></returns>
-        internal static Dictionary<string, string>[] JsonToListDictionary(string url, string region = "response")
+        internal static Dictionary<string, string>[] JsonToListDictionary(string url, string key = "response")
         {
             string dataJson = VkJson.getResponse(url);
-            if (region == "response")
+            if (key == "response")
             {
                 return response(dataJson);
             }
-            else // items
+            else // ключ, значения которого мы ищем
             {
-                return items(dataJson);
+                return items(dataJson, key);
             }
         }
 
@@ -127,23 +126,45 @@ namespace VkAPI
             return data;
         }
 
-        private static Dictionary<string, string>[] items(string dataJson)
+        private static Dictionary<string, string>[] items(string dataJson, string key)
         {
-            char s = dataJson[12];
+            char s;
+            dataJson = SearchSubDictionary("response", dataJson);
+            int pos_key = SearchKey(key, dataJson);
             Dictionary<string, string>[] data;
-            if (s == '[')
+            if (pos_key != -1)
             {
-                dataJson = dataJson.Substring(13, dataJson.Length - 14);
+                int[] set = SearchList(pos_key, dataJson);
                 string count = "";
-                foreach (char x in dataJson)
+                pos_key = SearchKey("count", dataJson);
+                if (pos_key != -1)
                 {
-                    if (x == ',')
+                    for (int i = pos_key + 5; i < dataJson.Length; i++)
                     {
-                        break;
+                        s = dataJson[i];
+                        if (s == ',')
+                        {
+                            dataJson = dataJson.Substring(set[0], set[1]);
+                            break;
+                        }
+                        count += s;
                     }
-                    count += x;
                 }
-                string[] users = VkJson.ListDictionary("[" + dataJson.Substring(count.Length + 1));
+                else
+                {
+                    dataJson = dataJson.Substring(set[0], set[1]);
+                    foreach (char x in dataJson)
+                    {
+                        if (x == ',')
+                        {
+                            dataJson = "[" + dataJson.Substring(count.Length + 1);
+                            count = count.Substring(1);
+                            break;
+                        }
+                        count += x;
+                    }
+                }
+                string[] users = VkJson.ListDictionary(dataJson);
                 data = new Dictionary<string, string>[1 + users.Length];
                 data[0] = new Dictionary<string, string>();
                 data[0].Add("count", count);
@@ -158,48 +179,99 @@ namespace VkAPI
             }
             else
             {
-                if (dataJson.Substring(2, 5) == "error")
+                data = new Dictionary<string, string>[1] { VkJson.ResponseError(dataJson) };
+                return data;
+            }
+        }
+
+        internal static int SearchKey(string key ,string str)
+        {
+            int braskets = 0;
+            int position = -1;
+            int len = str.Length - key.Length;
+            char s;
+            for (int i = 1; i < len; i++)
+            {
+                s = str[i];
+                if ((s == '{') | (s == '['))
                 {
-                    data = new Dictionary<string, string>[1] { VkJson.ResponseError(dataJson) };
+                    braskets++;
                 }
-                else
+                else if ((s == '}') | (s == ']'))
                 {
-                    string count = "0";
-                    for (int i = 21; i < dataJson.Length; i++)
+                    braskets--;
+                }
+
+                if ((braskets == 0) & (key == str.Substring(i, key.Length)))
+                {
+                    position = i;
+                    break;
+                }
+            }
+
+            return position;
+        }
+
+        internal static int[] SearchList(int begin, string str)
+        {
+            int braskets = 0;
+            int[] settings_list = new int[2] { -1, -1 };
+            char s;
+            for (int i = begin; i < str.Length; i++)
+            {
+                s = str[i];
+                if (s == '[')
+                {
+                    braskets++;
+                    if (braskets == 1)
                     {
-                        s = dataJson[i];
-                        if (s == ',') // ищем количество фоловеров
+                        settings_list[0] = i;
+                    }
+                }
+                else if (s == ']')
+                {
+                    braskets--;
+                    if ((braskets == 0) & (settings_list[0] != -1))
+                    {
+                        settings_list[1] = i - settings_list[0] + 1;
+                        break;
+                    }
+                }
+            }
+            return settings_list;
+        }
+
+        internal static string SearchSubDictionary(string key, string dictionary)
+        {
+            int braskets = 0;
+            int begin = 0;
+            int pos = SearchKey(key, dictionary);
+            char s;
+            if (pos != -1)
+            {
+                for (int i = 1; i < dictionary.Length; i++)
+                {
+                    s = dictionary[i];
+                    if (s == '{')
+                    {
+                        if (braskets == 0)
                         {
-                            count = dataJson.Substring(21, i - 21);
+                            begin = i;
                         }
-                        if (s == '[')
+                        braskets++;
+                    }
+                    else if (s == '}')
+                    {
+                        braskets--;
+                        if (braskets == 0)
                         {
-                            dataJson = dataJson.Substring(i, dataJson.Length - i - 2);
+                            dictionary = dictionary.Substring(begin, i - begin + 1);
                             break;
                         }
                     }
-                    s = dataJson[1];
-                    if (s == '{')
-                    {
-                        string[] items = VkJson.ListDictionary(dataJson);
-                        data = new Dictionary<string, string>[items.Length + 1];
-                        data[0] = new Dictionary<string, string>();
-                        data[0].Add("count", count);
-                        for (int i = 0; i < items.Length; i++)
-                        {
-                            //data[i + 1] = new Dictionary<string, string>();
-                            VkJson.FillDictionary(ref data[i + 1], items[i], "");
-                        }
-                    }
-                    else
-                    {
-                        data = new Dictionary<string, string>[1] { new Dictionary<string, string>() };
-                        data[0].Add("count", count);
-                        data[0].Add("items", dataJson.Substring(1, dataJson.Length - 2));
-                    }
                 }
-                return data;
             }
+            return dictionary;
         }
 
         // Oбщие методы формирования словаря |---------------------------------
