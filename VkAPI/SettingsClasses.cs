@@ -7,83 +7,6 @@ using System.IO;
 namespace VkAPI
 {
     /// <summary>
-    /// Класс содержащий информацию о пользователе
-    /// </summary>
-    public class VkUser
-    {
-        /// <summary>
-        /// id пользователя
-        /// </summary>
-        public string id;
-        /// <summary>
-        /// Уникальный ключ пользователя
-        /// </summary>
-        public string token;
-        /// <summary>
-        /// Имя пользователя
-        /// </summary>
-        public string FirstName;
-        /// <summary>
-        /// Фамилия пользователя
-        /// </summary>
-        public string LastName;
-        /// <summary>
-        /// Полная информация о пользователе
-        /// </summary>
-        public Dictionary<string, string> Info;
-        /// <summary>
-        /// Содержит последний ответ об ошибке сервера
-        /// </summary>
-        public Dictionary<string, string> Error;
-        /// <summary>
-        /// Список фоловеров, где 1-й ключ это id фоловера, а дальше информация о нем. 
-        /// Используйте метод users.GetFollowers, чтобы заполнить его
-        /// </summary>
-        public Dictionary<string, Dictionary<string, string>> Followers;
-        /// <summary>
-        /// Количество подписчиков у данного пользователя
-        /// Используйте метод users.GetFollowers, чтобы заполнить его
-        /// </summary>
-        public int countFollowers;
-
-        /// <summary>
-        /// Конструктор класса VkUser, в котором сразу выясняются параметры FirstName и LastName
-        /// </summary>
-        /// <param name="id">id пользователя</param>
-        public VkUser(string id)
-        {
-            this.id = id;
-            Initialize();
-        }
-
-        private void Initialize()
-        {
-            try
-            {
-                Dictionary<string, string> data = VK.Users.Get(new string[] { id })[0];
-                if (!data.ContainsKey("error_code"))
-                {
-                    FirstName = data["first_name"];
-                    LastName = data["last_name"];
-                    Error = new Dictionary<string, string>();
-                    Info = new Dictionary<string, string>(data);
-                }
-                else
-                {
-                    Error = new Dictionary<string, string>(data);
-                    Info = new Dictionary<string, string>();
-                }
-                data.Clear();
-            }
-            catch
-            {
-                Info = new Dictionary<string, string>();
-                Error = new Dictionary<string, string>();
-            }
-        }
-    }
-
-    /// <summary>
     /// Класс для обработки ответов от сервера VK
     /// </summary>
     static class VkJson
@@ -216,42 +139,27 @@ namespace VkAPI
         /// <returns>Позиция данного ключа</returns>
         internal static int SearchKey(string key, string json)
         {
-            int braskets = 0;
             int position = -1;
-            int quotes = 0;
             int len = json.Length - key.Length - 1;
             char s;
+            char s1 = key[0];
             for (int i = 1; i < len; i++)
             {
                 s = json[i];
-                if ((s == '"') & (quotes == 0))
+                if (s == s1)
                 {
-                    quotes++;
-                }
-                else if (s == '"')
-                {
-                    quotes--;
-                }
-                if (quotes == 0)
-                {
-                    if ((s == '{') | (s == '['))
+                    s = json[i - 1];
+                    if (s == '"')
                     {
-                        braskets++;
-                    }
-                    else if ((s == '}') | (s == ']'))
-                    {
-                        braskets--;
-                    }
-                }
-                else
-                {
-                    if ((braskets == 0) & (key == json.Substring(i, key.Length)))
-                    {
-                        s = json[i + key.Length + 1];
-                        if (s == ':')
+                        s = json[i + key.Length];
+                        if (s == '"')
                         {
-                            position = i;
-                            break;
+                            s = json[i + key.Length + 1];
+                            if ((s == ':') & (json.Substring(i, key.Length) == key))
+                            {
+                                position = i;
+                                break;
+                            }
                         }
                     }
                 }
@@ -319,18 +227,10 @@ namespace VkAPI
             if (pos != -1)
             {
                 setList = GetSettingsList(pos, json);
-                if (setList[0] != -1 & setList[1] != -1)
+                if ((setList[0] != -1) & (setList[1] != -1))
                 {
                     json = json.Substring(setList[0], setList[1]);
                 }
-                else
-                {
-                    json = "not found";
-                }
-            }
-            else
-            {
-                json = "not found";
             }
             return json;
         }
@@ -364,10 +264,6 @@ namespace VkAPI
                         }
                     }
                 }
-            }
-            else
-            {
-                dictionary = "not found";
             }
             return dictionary;
         }
@@ -432,7 +328,14 @@ namespace VkAPI
         public static Dictionary<string, string> ResponseError(string errorJson)
         {
             Dictionary<string, string> data = new Dictionary<string, string>();
-            FillDictionary(ref data, errorJson.Substring(9, errorJson.Length - 10), "");
+            if (SearchKey("response",errorJson) != -1)
+            {
+                data.Add("response", errorJson);
+            }
+            else
+            {
+                FillDictionary(ref data, errorJson.Substring(9, errorJson.Length - 10), "");
+            }
             return data;
         }
 
