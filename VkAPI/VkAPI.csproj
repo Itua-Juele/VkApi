@@ -21,7 +21,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <DocumentationFile>bin\Debug\VkAPI.XML</DocumentationFile>
+    <DocumentationFile>bin\Debug\VkAPI.xml</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -40,6 +40,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AluxiliaryClasses.cs" />
+    <Compile Include="VkClass.cs" />
     <Compile Include="SettingsClasses.cs" />
     <Compile Include="UsersClass.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

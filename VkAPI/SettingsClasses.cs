@@ -7,182 +7,23 @@ using System.IO;
 namespace VkAPI
 {
     /// <summary>
-    /// Класс содержащий информацию о пользователе
-    /// </summary>
-    public class VkUser
-    {
-        /// <summary>
-        /// id пользователя
-        /// </summary>
-        public string id;
-        /// <summary>
-        /// Уникальный ключ пользователя
-        /// </summary>
-        public string token;
-        /// <summary>
-        /// Имя пользователя
-        /// </summary>
-        public string FirstName;
-        /// <summary>
-        /// Фамилия пользователя
-        /// </summary>
-        public string LastName;
-        /// <summary>
-        /// Полная информация о пользователе
-        /// </summary>
-        public Dictionary<string, string> Info;
-        /// <summary>
-        /// Содержит последний ответ об ошибке сервера
-        /// </summary>
-        public Dictionary<string, string> Error;
-        /// <summary>
-        /// Список фоловеров, где 1-й ключ это id фоловера, а дальше информация о нем. 
-        /// Используйте метод users.GetFollowers, чтобы заполнить его
-        /// </summary>
-        public Dictionary<string, Dictionary<string, string>> Followers;
-        /// <summary>
-        /// Количество подписчиков у данного пользователя
-        /// Используйте метод users.GetFollowers, чтобы заполнить его
-        /// </summary>
-        public int countFollowers;
-
-        /// <summary>
-        /// Конструктор класса VkUser, в котором сразу выясняются параметры FirstName и LastName
-        /// </summary>
-        /// <param name="id">id пользователя</param>
-        public VkUser(string id)
-        {
-            this.id = id;
-            Initialize();
-        }
-
-        private void Initialize()
-        {
-            try
-            {
-                Dictionary<string, string> data = VK.Users.Get(new string[] { id })[0];
-                if (!data.ContainsKey("error_code"))
-                {
-                    FirstName = data["first_name"];
-                    LastName = data["last_name"];
-                    Error = new Dictionary<string, string>();
-                    Info = new Dictionary<string, string>(data);
-                }
-                else
-                {
-                    Error = new Dictionary<string, string>(data);
-                    Info = new Dictionary<string, string>();
-                }
-                data.Clear();
-            }
-            catch
-            {
-                Info = new Dictionary<string, string>();
-                Error = new Dictionary<string, string>();
-            }
-        }
-    }
-
-    /// <summary>
     /// Класс для обработки ответов от сервера VK
     /// </summary>
     static class VkJson
     {
-        /// <summary>
-        /// Преобразует json строку в список из словарей
-        /// </summary>
-        /// <param name="url"></param>
-        /// <param name="key">переменная, которой находится словарь</param>
-        /// <returns></returns>
-        internal static Dictionary<string, string>[] JsonToListDictionary(string url, string key = "response")
-        {
-            string dataJson = VkJson.getResponse(url);
-            if (key == "response")
-            {
-                return response(dataJson);
-            }
-            else // ключ, значения которого мы ищем
-            {
-                return items(dataJson, key);
-            }
-        }
-
-        private static Dictionary<string, string>[] response(string dataJson)
-        {
-            Dictionary<string, string>[] data;
-            if (dataJson.Substring(2, 5) == "error")
-            {
-                data = new Dictionary<string, string>[1] { VkJson.ResponseError(dataJson) };
-            }
-            else
-            {
-                string[] response = VkJson.ListDictionary(dataJson.Substring(12, dataJson.Length - 13));
-                data = new Dictionary<string, string>[response.Length];
-                for (int i = 0; i < response.Length; i++)
-                {
-                    VkJson.FillDictionary(ref data[i], response[i], "");
-                }
-            }
-            return data;
-        }
-
-        private static Dictionary<string, string>[] items(string dataJson, string key)
-        {
-            char s;
-            dataJson = GetSubDictionary("response", dataJson);
-            int pos_key = SearchKey(key, dataJson);
-            Dictionary<string, string>[] data;
-            if (pos_key != -1)
-            {
-                int[] set = GetSettingsList(pos_key - 1, dataJson);
-                string count = "";
-                pos_key = SearchKey("count", dataJson);
-                if (pos_key != -1)
-                {
-                    count = GetValueDictionary("count", dataJson);
-                    dataJson = dataJson.Substring(set[0], set[1]);
-                }
-                else
-                {
-                    dataJson = dataJson.Substring(set[0], set[1]);
-                    foreach (char x in dataJson)
-                    {
-                        if (x == ',')
-                        {
-                            dataJson = "[" + dataJson.Substring(count.Length + 1);
-                            count = count.Substring(1);
-                            break;
-                        }
-                        count += x;
-                    }
-                }
-                string[] users = VkJson.ListDictionary(dataJson);
-                data = new Dictionary<string, string>[1 + users.Length];
-                data[0] = new Dictionary<string, string>();
-                data[0].Add("count", count);
-                if (users.Length > 0)
-                {
-                    for (int i = 0; i < users.Length; i++)
-                    {
-                        VkJson.FillDictionary(ref data[i + 1], users[i]);
-                    }
-                }
-                return data;
-            }
-            else
-            {
-                data = new Dictionary<string, string>[1] { VkJson.ResponseError(dataJson) };
-                return data;
-            }
-        }
-
         // Методы поддержки |--------------------------------------------------
+        /// <summary>
+        /// Возвращает значение, содержащееся в данном ключе
+        /// </summary>
+        /// <param name="key">имя ключа</param>
+        /// <param name="json">словарь, в котором ключ содержится</param>
+        /// <returns></returns>
         public static string GetValueDictionary(string key, string json)
         {
             int pos = SearchKey(key, json);
             if (pos != -1)
             {
-                char s = json[pos + key.Length + 1];
+                char s = json[pos + key.Length + 2];
                 if (s == '{')
                 {
                     json = GetSubDictionary(key, json);
@@ -212,46 +53,31 @@ namespace VkAPI
         /// Возваращает позицию данного ключа
         /// </summary>
         /// <param name="key">ключ, позицию которого нужно найти</param>
-        /// <param name="json">словарь, в виде json строки</param>
+        /// <param name="json">словарь, в котором ключ содержится</param>
         /// <returns>Позиция данного ключа</returns>
         internal static int SearchKey(string key, string json)
         {
-            int braskets = 0;
             int position = -1;
-            int quotes = 0;
             int len = json.Length - key.Length - 1;
             char s;
+            char s1 = key[0];
             for (int i = 1; i < len; i++)
             {
                 s = json[i];
-                if ((s == '"') & (quotes == 0))
+                if (s == s1)
                 {
-                    quotes++;
-                }
-                else if (s == '"')
-                {
-                    quotes--;
-                }
-                if (quotes == 0)
-                {
-                    if ((s == '{') | (s == '['))
+                    s = json[i - 1];
+                    if (s == '"')
                     {
-                        braskets++;
-                    }
-                    else if ((s == '}') | (s == ']'))
-                    {
-                        braskets--;
-                    }
-                }
-                else
-                {
-                    if ((braskets == 0) & (key == json.Substring(i, key.Length)))
-                    {
-                        s = json[i + key.Length + 1];
-                        if (s == ':')
+                        s = json[i + key.Length];
+                        if (s == '"')
                         {
-                            position = i;
-                            break;
+                            s = json[i + key.Length + 1];
+                            if ((s == ':') & (json.Substring(i, key.Length) == key))
+                            {
+                                position = i;
+                                break;
+                            }
                         }
                     }
                 }
@@ -263,26 +89,26 @@ namespace VkAPI
         /// Возвращает начало позиции и длину первого найденного списка начиная с данной позиции
         /// </summary>
         /// <param name="begin">позиция, от которой идет начало поиска</param>
-        /// <param name="str">Место поиска</param>
+        /// <param name="str">словарь, в котором ключ содержитсяа</param>
         /// <returns>[начало, длина]</returns>
-        private static int[] GetSettingsList(int begin, string str)
+        internal static int[] GetSettingsList(int begin, string str)
         {
             int braskets = 0;
             int[] settings_list = new int[2] { -1, -1 };
-            int quotes = 0;
+            bool quotes = false;
             char s;
             for (int i = begin; i < str.Length; i++)
             {
                 s = str[i];
-                if ((s == '"') & (quotes == 0))
+                if ((s == '"') & !quotes)
                 {
-                    quotes++;
+                    quotes = true;
                 }
                 else if (s == '"')
                 {
-                    quotes--;
+                    quotes = false;
                 }
-                if (quotes == 0)
+                if (!quotes)
                 {
                     if (s == '[')
                     {
@@ -310,64 +136,70 @@ namespace VkAPI
         /// возвращает массив содержащийся по данному ключу
         /// </summary>
         /// <param name="key">ключ, в котором содержится список</param>
-        /// <param name="json">словарь, в виде json строки</param>
+        /// <param name="json">словарь, в котором ключ содержится</param>
         /// <returns>Список содержащийся в ключе</returns>
-        private static string GetListDictionary(string key, string json)
+        internal static string GetListDictionary(string key, string json)
         {
             int pos = SearchKey(key, json);
             int[] setList;
             if (pos != -1)
             {
-                setList = GetSettingsList(pos, json);
-                if (setList[0] != -1 & setList[1] != -1)
+                setList = GetSettingsList(pos - 1, json);
+                if ((setList[0] != -1) & (setList[1] != -1))
                 {
                     json = json.Substring(setList[0], setList[1]);
                 }
-                else
-                {
-                    json = "not found";
-                }
-            }
-            else
-            {
-                json = "not found";
             }
             return json;
         }
 
-        private static string GetSubDictionary(string key, string dictionary)
+        /// <summary>
+        /// возвращает словарь содержащийся по данному ключу
+        /// </summary>
+        /// <param name="key">имя ключа</param>
+        /// <param name="dictionary">словарь,  в котором содержится ключ</param>
+        /// <returns></returns>
+        internal static string GetSubDictionary(string key, string dictionary)
         {
             int braskets = 0;
+            bool quotes = true;
             int begin = 0;
             int pos = SearchKey(key, dictionary);
             char s;
             if (pos != -1)
             {
-                for (int i = 1; i < dictionary.Length; i++)
+                for (int i = pos; i < dictionary.Length; i++)
                 {
                     s = dictionary[i];
-                    if (s == '{')
+                    if ((s == '"') & quotes)
                     {
-                        if (braskets == 0)
-                        {
-                            begin = i;
-                        }
-                        braskets++;
+                        quotes = false;
+                    }else if ((s == '"') & !quotes)
+                    {
+                        quotes = true;
                     }
-                    else if (s == '}')
+
+                    if (!quotes)
                     {
-                        braskets--;
-                        if (braskets == 0)
+                        if (s == '{')
                         {
-                            dictionary = dictionary.Substring(begin, i - begin + 1);
-                            break;
+                            if (braskets == 0)
+                            {
+                                begin = i;
+                            }
+                            braskets++;
+                        }
+                        else if (s == '}')
+                        {
+                            braskets--;
+                            if (braskets == 0)
+                            {
+                                dictionary = dictionary.Substring(begin, i - begin + 1);
+                                break;
+                            }
                         }
                     }
                 }
-            }
-            else
-            {
-                dictionary = "not found";
             }
             return dictionary;
         }
@@ -432,7 +264,14 @@ namespace VkAPI
         public static Dictionary<string, string> ResponseError(string errorJson)
         {
             Dictionary<string, string> data = new Dictionary<string, string>();
-            FillDictionary(ref data, errorJson.Substring(9, errorJson.Length - 10), "");
+            if (SearchKey("response",errorJson) != -1)
+            {
+                data.Add("response", errorJson);
+            }
+            else
+            {
+                FillDictionary(ref data, errorJson.Substring(9, errorJson.Length - 10), "");
+            }
             return data;
         }
 
