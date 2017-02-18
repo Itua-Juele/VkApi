@@ -88,28 +88,7 @@ namespace VkAPI
         /// </summary>
         public void Get()
         {
-            Dictionary<string, string> data = VK.Users.Get(new string[] { id }, null, "nom")[0];
-            if (data.ContainsKey("error_code"))
-            {
-                Error = new Dictionary<string, string>(data);
-            }
-            else
-            {
-                Info = new Dictionary<string, string>(data);
-                foreach (string key in Info.Keys)
-                {
-                    if (key == "first_name")
-                    {
-                        FirstName = Info[key];
-                    }
-                    else if (key == "last_name")
-                    {
-                        LastName = Info[key];
-                    }
-                }
-            }
-            data.Clear();
-            data = null;
+            Get(null, "nom");
         }
         /// <summary>
         /// Возвращает общую информацию о пользователe
@@ -117,28 +96,7 @@ namespace VkAPI
         /// <param name="fields">параметры запроса</param>
         public void Get(string[] fields)
         {
-            Dictionary<string, string> data = VK.Users.Get(new string[] { id }, fields, "nom")[0];
-            if (data.ContainsKey("error_code"))
-            {
-                Error = new Dictionary<string, string>(data);
-            }
-            else
-            {
-                Info = new Dictionary<string, string>(data);
-                foreach (string key in Info.Keys)
-                {
-                    if (key == "first_name")
-                    {
-                        FirstName = Info[key];
-                    }
-                    else if (key == "last_name")
-                    {
-                        LastName = Info[key];
-                    }
-                }
-            }
-            data.Clear();
-            data = null;
+            Get(fields, "nom");
         }
         /// <summary>
         /// Возвращает общую информацию о пользователe
@@ -169,8 +127,22 @@ namespace VkAPI
             data.Clear();
             data = null;
         }
-
         // Метод users.getFollowers |--------------------------------------
+        /// <summary>
+        /// Возвращает список идентификаторов пользователей, которые являются подписчиками пользователя
+        /// </summary>
+        public void GetFollowers()
+        {
+            GetFollowers(0, 5, null, "nom");
+        }
+        /// <summary>
+        /// Возвращает список идентификаторов пользователей, которые являются подписчиками пользователя
+        /// </summary>
+        /// <param name="offset">смещение, необходимое для выборки определенного подмножества подписчиков (положительное число)</param>
+        public void GetFollowers(int offset)
+        {
+            GetFollowers(offset, 5, null, "nom");
+        }
         /// <summary>
         /// Возвращает список идентификаторов пользователей, которые являются подписчиками пользователя
         /// </summary>
@@ -178,27 +150,7 @@ namespace VkAPI
         /// <param name="count">количество подписчиков, информацию о которых нужно получить</param>
         public void GetFollowers(int offset, int count)
         {
-            Dictionary<string, string>[] data = VK.Users.GetFollowers(id, offset, count, null, "nom");
-            if (data[0].ContainsKey("error_code"))
-            {
-                Error = new Dictionary<string, string>(data[0]);
-            }
-            else
-            {
-                countFollowers = Convert.ToInt32(data[0]["count"]);
-                if (data.Length > 1)
-                {
-                    Followers = new Dictionary<string, Dictionary<string, string>>();
-                    for (int i = 1; i < data.Length; i++)
-                    {
-                        foreach (string key in data[i].Keys)
-                        {
-                            Followers.Add(data[i][key], new Dictionary<string, string>(data[i]));
-                            break;
-                        }
-                    }
-                }
-            }
+            GetFollowers(offset, count, null, "nom");
         }
         /// <summary>
         /// Возвращает список идентификаторов пользователей, которые являются подписчиками пользователя
@@ -208,36 +160,7 @@ namespace VkAPI
         /// <param name="fields">список дополнительных полей профилей, которые необходимо вернуть</param>
         public void GetFollowers(int offset, int count, string[] fields)
         {
-            Dictionary<string, string>[] data;
-            if (fields.Length == 0)
-            {
-                data = VK.Users.GetFollowers(id, offset, count, fields, "nom");
-            }
-            else
-            {
-                data = VK.Users.GetFollowers(id, offset, count, fields, "nom");
-            }
-
-            if (data[0].ContainsKey("error_code"))
-            {
-                Error = new Dictionary<string, string>(data[0]);
-            }
-            else
-            {
-                countFollowers = Convert.ToInt32(data[0]["count"]);
-                if (data.Length > 1)
-                {
-                    Followers = new Dictionary<string, Dictionary<string, string>>();
-                    for (int i = 1; i < data.Length; i++)
-                    {
-                        foreach (string key in data[i].Keys)
-                        {
-                            Followers.Add(data[i][key], new Dictionary<string, string>(data[i]));
-                            break;
-                        }
-                    }
-                }
-            }
+            GetFollowers(offset, count, fields, "nom");
         }
         /// <summary>
         /// Возвращает список идентификаторов пользователей, которые являются подписчиками пользователя

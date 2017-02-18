@@ -64,7 +64,7 @@ namespace VkAPI
             /// <returns></returns>
             public static Dictionary<string, string>[] GetFollowers(string id)
             {
-                return GetFollowers(id, 0, 5, null, "nom");
+                return GetFollowers(id, 0, 5, null,"nom");
             }
             /// <summary>
             /// Возвращает список идентификаторов пользователей, которые являются подписчиками пользователя. 
