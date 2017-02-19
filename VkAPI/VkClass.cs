@@ -69,17 +69,25 @@ namespace VkAPI
                         count += x;
                     }
                 }
-                string[] users = VkJson.ListDictionary(dataJson);
-                data = new Dictionary<string, string>[1 + users.Length];
-                data[0] = new Dictionary<string, string>();
-                data[0].Add("count", count);
-                if (users.Length > 0)
+                char s = dataJson[1];
+                if (s == '{')
                 {
+                    string[] users = VkJson.ListDictionary(dataJson);
+                    data = new Dictionary<string, string>[1 + users.Length];
                     for (int i = 0; i < users.Length; i++)
                     {
                         VkJson.FillDictionary(ref data[i + 1], users[i]);
                     }
                 }
+                else
+                {
+                    data = new Dictionary<string, string>[2];
+                    data[1] = new Dictionary<string, string>();
+                    data[1].Add("items", dataJson);
+                }
+
+                data[0] = new Dictionary<string, string>();
+                data[0].Add("count", count);
                 return data;
             }
             else

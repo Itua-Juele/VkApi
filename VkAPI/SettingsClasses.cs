@@ -227,14 +227,15 @@ namespace VkAPI
                 {
                     quotes--;
                 }
+
                 if (quotes == 0)
                 {
                     s = dataJson[i];
-                    if (s == '{')
+                    if ((s == '{') | (s == '['))
                     {
                         basket++;
                     }
-                    else if (s == '}')
+                    else if ((s == '}') | (s == ']'))
                     {
                         basket--;
                     }

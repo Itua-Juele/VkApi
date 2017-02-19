@@ -9,80 +9,112 @@ namespace VkAPI
     /// <summary>
     /// Класс содержащий информацию о пользователе
     /// </summary>
-    public class VkUser
+    public class User
     {
         /// <summary>
-        /// id пользователя
+        /// Переменная для хранения всей информации 
         /// </summary>
-        public string id;
+        private Dictionary<string, Dictionary<string, string>[]> data;
+
         /// <summary>
-        /// Уникальный ключ пользователя
+        /// идентификатор пользователя
         /// </summary>
-        public string token;
+        public string ID { get { return data["data"][0]["id"]; } }
         /// <summary>
         /// Имя пользователя
         /// </summary>
-        public string FirstName;
+        public string FirstName { get { return data["data"][0]["first_name"]; } }
         /// <summary>
         /// Фамилия пользователя
         /// </summary>
-        public string LastName;
+        public string LastName { get { return data["data"][0]["last_name"]; } }
         /// <summary>
         /// Полная информация о пользователе
         /// </summary>
-        public Dictionary<string, string> Info;
+        public Dictionary<string, string> Info { get { return data["get"][0]; } }
         /// <summary>
         /// Содержит последний ответ об ошибке сервера
         /// </summary>
-        public Dictionary<string, string> Error;
+        public Dictionary<string, string> Error { get { return data["error"][0]; } }
         /// <summary>
         /// Список фоловеров, где 1-й ключ это id фоловера, а дальше информация о нем. 
         /// Используйте метод GetFollowers, чтобы заполнить его
         /// </summary>
-        public Dictionary<string, Dictionary<string, string>> Followers;
+        public Dictionary<string, string>[] Followers { get { return data["getFollowers"]; } }
         /// <summary>
         /// Количество подписчиков у данного пользователя
         /// Используйте метод GetFollowers, чтобы заполнить его
         /// </summary>
-        public int countFollowers;
+        public int countFollowers { get { return Convert.ToInt32(data["countFollowers"][0]["count"]); } }
 
+        // Конструкторы класса |-----------------------------------------------
         /// <summary>
-        /// Конструктор класса VkUser, в котором сразу выясняются параметры FirstName и LastName
+        /// Конструктор класса User 
         /// </summary>
-        /// <param name="id">id пользователя</param>
-        public VkUser(string id)
+        /// <param name="id">индетификатор пользователя</param>
+        /// <param name="firstName">имя пользователя</param>
+        /// <param name="lastName">фамилия пользователя</param>
+        public User(string id, string firstName, string lastName)
         {
-            this.id = id;
-            Initialize();
-        }
-
-        private void Initialize()
-        {
+            data = new Dictionary<string, Dictionary<string, string>[]>();
+            data.Add("data", new Dictionary<string, string>[1] { new Dictionary<string, string>() } );
+            data["data"][0].Add("id", id);
+            data["data"][0].Add("first_name", firstName);
+            data["data"][0].Add("last_name", lastName);
             try
             {
-                Dictionary<string, string> data = VK.Users.Get(new string[] { id })[0];
-                if (!data.ContainsKey("error_code"))
-                {
-                    FirstName = data["first_name"];
-                    LastName = data["last_name"];
-                    Error = new Dictionary<string, string>();
-                    Info = new Dictionary<string, string>(data);
-                }
-                else
-                {
-                    Error = new Dictionary<string, string>(data);
-                    Info = new Dictionary<string, string>();
-                }
-                data.Clear();
+                Get();
             }
-            catch
+            catch { }
+            
+        }
+        /// <summary>
+        /// Конструктор класса User 
+        /// </summary>
+        /// <param name="id">индетификатор пользователя</param>
+        /// <param name="firstName">имя пользователя</param>
+        public User(string id, string firstName) : this(id, firstName, "") { }
+        /// <summary>
+        /// Конструктор класса User, в котором выясняются параметры FirstName и LastName
+        /// </summary>
+        /// <param name="id">id пользователя</param>
+        public User(string id): this(id, "", "") { }
+
+        // Методы для работы с информацией |-----------------------------------
+        /// <summary>
+        /// Возвращает информацию из переменной data
+        /// </summary>
+        /// <param name="key">ключ, в котором содержится информация</param>
+        /// <returns></returns>
+        private Dictionary<string, string>[] GetData(string key)
+        {
+            if (data.ContainsKey(key))
             {
-                Info = new Dictionary<string, string>();
-                Error = new Dictionary<string, string>();
+                return data[key];
+            }
+            else
+            {
+                return null;
+            }
+        }
+        /// <summary>
+        /// Заносит информацию в переменную data
+        /// </summary>
+        /// <param name="key">ключ, по которума надо сохранить информацию</param>
+        /// <param name="dicList">Информация, в виде массива словарей</param>
+        private void SetData(string key, Dictionary<string, string>[] dicList)
+        {
+            if (data.ContainsKey(key))
+            {
+                data[key] = dicList;
+            }
+            else
+            {
+                data.Add(key, dicList);
             }
         }
 
-        // Метод user.get |------------------------------------------------
+        // Метод user.get |----------------------------------------------------
         /// <summary>
         /// Возвращает общую информацию о пользователe
         /// </summary>
@@ -105,29 +137,27 @@ namespace VkAPI
         /// <param name="fields">параметры запроса</param>
         public void Get( string[] fields, string name_case)
         {
-            Dictionary<string, string> data = VK.Users.Get(new string[] { id }, fields, name_case)[0];
-            if (data.ContainsKey("error_code"))
+            Dictionary<string, string>[] d = VK.Users.Get(new string[] { ID }, fields, name_case);
+            if (d[0].ContainsKey("error_code"))
             {
-                Error = new Dictionary<string, string>(data);
+                SetData("error", d);
             }
             else
             {
-                Info = new Dictionary<string, string>(data);
-                foreach (string key in Info.Keys)
+                SetData("get", d);
+                foreach (string key in d[0].Keys)
                 {
-                    if (key == "first_name")
+                    if ((key == "first_name") | (key == "last_name"))
                     {
-                        FirstName = Info[key];
-                    } else if (key == "last_name")
-                    {
-                        LastName = Info[key];
+                        data["data"][0][key] = d[0][key];
                     }
                 }
             }
-            data.Clear();
-            data = null;
+            d[0].Clear();
+            d = null;
         }
-        // Метод users.getFollowers |--------------------------------------
+
+        // Метод users.getFollowers |------------------------------------------
         /// <summary>
         /// Возвращает список идентификаторов пользователей, которые являются подписчиками пользователя
         /// </summary>
@@ -171,34 +201,23 @@ namespace VkAPI
         /// <param name="name_case">падеж для склонения имени и фамилии пользователя</param>
         public void GetFollowers(int offset, int count, string[] fields, string name_case)
         {
-            Dictionary<string, string>[] data;
-            if (fields.Length == 0)
-            {
-                data = VK.Users.GetFollowers(id, offset, count, fields, name_case);
-            }
-            else
-            {
-                data = VK.Users.GetFollowers(id, offset, count, fields, name_case);
-            }
+            Dictionary<string, string>[] d = VK.Users.GetFollowers(ID, offset, count, fields, name_case);
 
-            if (data[0].ContainsKey("error_code"))
+            if (d[0].ContainsKey("error_code"))
             {
-                Error = new Dictionary<string, string>(data[0]);
+                SetData("error", d);
             }
             else
             {
-                countFollowers = Convert.ToInt32(data[0]["count"]);
-                if (data.Length > 1)
+                SetData("countFollowers", new Dictionary<string, string>[1] { d[0] });
+                if (d.Length > 1)
                 {
-                    Followers = new Dictionary<string, Dictionary<string, string>>();
-                    for (int i = 1; i < data.Length; i++)
+                    Dictionary<string, string>[] d1 = new Dictionary<string, string>[d.Length - 1];
+                    for (int i = 0; i < d1.Length; i++)
                     {
-                        foreach (string key in data[i].Keys)
-                        {
-                            Followers.Add(data[i][key], new Dictionary<string, string>(data[i]));
-                            break;
-                        }
+                        d1[i] = new Dictionary<string, string>(d[i + 1]);
                     }
+                    SetData("getFollowers", d1);
                 }
             }
         }
