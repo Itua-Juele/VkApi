@@ -9,7 +9,7 @@ namespace VkAPI
     /// <summary>
     /// Класс для обработки ответов от сервера VK
     /// </summary>
-    static class VkJson
+    public static class VkJson
     {
         // Методы поддержки |--------------------------------------------------
         /// <summary>
@@ -389,6 +389,132 @@ namespace VkAPI
             string s = sr.ReadToEnd();
             sr.Dispose();
             return s.Replace("\\/", "/");
+        }
+    }
+
+    internal class VkData
+    {
+        private Dictionary<string, Dictionary<string, string>[]> data;
+
+        public VkData() { data = new Dictionary<string, Dictionary<string, string>[]>(); }
+
+        // метод Get для data |------------------------------------------------
+        /// <summary>
+        /// Метод возвращает информацию из класса VkData
+        /// </summary>
+        /// <param name="key">имя ключа, в котором находится необходимая информация</param>
+        /// <returns>Список словарей</returns>
+        public Dictionary<string, string>[] GetData(string key)
+        {
+            if (data.ContainsKey(key))
+            {
+                return data[key];
+            }
+            else
+            {
+                return null;
+            }
+        }
+        /// <summary>
+        /// Метод возвращает информацию из класса VkData
+        /// </summary>
+        /// <param name="key">имя ключа, в котором находится необходимая информация</param>
+        /// <param name="number">номер словаря, в котором находится необходимая информация</param>
+        /// <returns>Словарь</returns>
+        public Dictionary<string, string> GetData(string key, int number)
+        {
+            if (GetData(key) == null)
+            {
+                return null;
+            }
+            else
+            {
+                if (data[key].Length > number)
+                {
+                    return data[key][number];
+                }
+                else
+                {
+                    return null;
+                }
+            }
+        }
+        /// <summary>
+        /// Метод возвращает информацию из класса VkData
+        /// </summary>
+        /// <param name="key">имя ключа, в котором находится необходимая информация</param>
+        /// <param name="number">номер словаря, в котором находится необходимая информация</param>
+        /// <param name="subkey">имя ключа под словаря, в котором находится необходимая информация</param>
+        /// <returns>Конечная строка с первичной информацией</returns>
+        public string GetData(string key, int number, string subkey)
+        {
+            if (GetData(key, number) == null)
+            {
+                return null;
+            }
+            else
+            {
+                if (GetData(key, number).ContainsKey(subkey))
+                {
+                    return data[key][number][subkey];
+                }
+                else
+                {
+                    return null;
+                }
+            }
+        }
+
+        // метод Set для data |------------------------------------------------
+        /// <summary>
+        /// Устанавлвает или создает ключ key с информацией
+        /// </summary>
+        /// <param name="key">имя ключа, в который нужно поместить информацию</param>
+        /// <param name="dic_s">информация</param>
+        public void SetData(string key, Dictionary<string, string>[] dic_s)
+        {
+            if (GetData(key) == null)
+            {
+                data.Add(key, dic_s);
+            }
+            else
+            {
+                data[key] = dic_s;
+            }
+        }
+        /// <summary>
+        /// В ключе key утанавливает словарь dic под номером number
+        /// </summary>
+        /// <param name="key"></param>
+        /// <param name="number"></param>
+        /// <param name="dic"></param>
+        public void SetData(string key, int number, Dictionary<string, string> dic)
+        {
+            if (GetData(key, number) != null)
+            {
+                data[key][number] = dic;
+            }
+        }
+        /// <summary>
+        /// В ключе subkey в словаре под номером number, находящегося в ключе key, устанавливает значение info
+        /// </summary>
+        /// <param name="key"></param>
+        /// <param name="number"></param>
+        /// <param name="subkey"></param>
+        /// <param name="info"></param>
+        public void SetData(string key, int number, string subkey, string info)
+        {
+            if (GetData(key, number, subkey) != null)
+            {
+                data[key][number][subkey] = info;
+            }
+            else
+            {
+                if (GetData(key, number) != null)
+                {
+                    data[key][number].Add(subkey, info);
+                }
+            }
         }
     }
 }

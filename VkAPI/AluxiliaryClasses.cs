@@ -14,38 +14,38 @@ namespace VkAPI
         /// <summary>
         /// Переменная для хранения всей информации 
         /// </summary>
-        private Dictionary<string, Dictionary<string, string>[]> data;
+        private VkData data;
 
         /// <summary>
         /// идентификатор пользователя
         /// </summary>
-        public string ID { get { return data["data"][0]["id"]; } }
+        public string ID { get { return data.GetData("data", 0, "id"); } }
         /// <summary>
         /// Имя пользователя
         /// </summary>
-        public string FirstName { get { return data["data"][0]["first_name"]; } }
+        public string FirstName { get { return data.GetData("data",0, "first_name"); } }
         /// <summary>
         /// Фамилия пользователя
         /// </summary>
-        public string LastName { get { return data["data"][0]["last_name"]; } }
+        public string LastName { get { return data.GetData("data", 0, "last_name"); } }
         /// <summary>
         /// Полная информация о пользователе
         /// </summary>
-        public Dictionary<string, string> Info { get { return data["get"][0]; } }
+        public Dictionary<string, string> Info { get { return data.GetData("get", 0); } }
         /// <summary>
         /// Содержит последний ответ об ошибке сервера
         /// </summary>
-        public Dictionary<string, string> Error { get { return data["error"][0]; } }
+        public Dictionary<string, string> Error { get { return data.GetData("error", 0); } }
         /// <summary>
         /// Список фоловеров, где 1-й ключ это id фоловера, а дальше информация о нем. 
         /// Используйте метод GetFollowers, чтобы заполнить его
         /// </summary>
-        public Dictionary<string, string>[] Followers { get { return data["getFollowers"]; } }
+        public Dictionary<string, string>[] Followers { get { return data.GetData("getFollowers"); } }
         /// <summary>
         /// Количество подписчиков у данного пользователя
         /// Используйте метод GetFollowers, чтобы заполнить его
         /// </summary>
-        public int countFollowers { get { return Convert.ToInt32(data["countFollowers"][0]["count"]); } }
+        public int countFollowers { get { return Convert.ToInt32(data.GetData("countFollowers", 0, "count")); } }
 
         // Конструкторы класса |-----------------------------------------------
         /// <summary>
@@ -56,11 +56,11 @@ namespace VkAPI
         /// <param name="lastName">фамилия пользователя</param>
         public User(string id, string firstName, string lastName)
         {
-            data = new Dictionary<string, Dictionary<string, string>[]>();
-            data.Add("data", new Dictionary<string, string>[1] { new Dictionary<string, string>() } );
-            data["data"][0].Add("id", id);
-            data["data"][0].Add("first_name", firstName);
-            data["data"][0].Add("last_name", lastName);
+            data = new VkData();
+            data.SetData("data", new Dictionary<string, string>[1] { new Dictionary<string, string>() });
+            data.SetData("data", 0, "id", id);
+            data.SetData("data", 0, "first_name", firstName);
+            data.SetData("data", 0, "last_name", lastName);
             try
             {
                 Get();
@@ -79,40 +79,6 @@ namespace VkAPI
         /// </summary>
         /// <param name="id">id пользователя</param>
         public User(string id): this(id, "", "") { }
-
-        // Методы для работы с информацией |-----------------------------------
-        /// <summary>
-        /// Возвращает информацию из переменной data
-        /// </summary>
-        /// <param name="key">ключ, в котором содержится информация</param>
-        /// <returns></returns>
-        private Dictionary<string, string>[] GetData(string key)
-        {
-            if (data.ContainsKey(key))
-            {
-                return data[key];
-            }
-            else
-            {
-                return null;
-            }
-        }
-        /// <summary>
-        /// Заносит информацию в переменную data
-        /// </summary>
-        /// <param name="key">ключ, по которума надо сохранить информацию</param>
-        /// <param name="dicList">Информация, в виде массива словарей</param>
-        private void SetData(string key, Dictionary<string, string>[] dicList)
-        {
-            if (data.ContainsKey(key))
-            {
-                data[key] = dicList;
-            }
-            else
-            {
-                data.Add(key, dicList);
-            }
-        }
 
         // Метод user.get |----------------------------------------------------
         /// <summary>
@@ -140,16 +106,16 @@ namespace VkAPI
             Dictionary<string, string>[] d = VK.Users.Get(new string[] { ID }, fields, name_case);
             if (d[0].ContainsKey("error_code"))
             {
-                SetData("error", d);
+                data.SetData("error", d);
             }
             else
             {
-                SetData("get", d);
+                data.SetData("get", d);
                 foreach (string key in d[0].Keys)
                 {
                     if ((key == "first_name") | (key == "last_name"))
                     {
-                        data["data"][0][key] = d[0][key];
+                        data.SetData("data", 0, key, d[0][key]);
                     }
                 }
             }
@@ -205,11 +171,11 @@ namespace VkAPI
 
             if (d[0].ContainsKey("error_code"))
             {
-                SetData("error", d);
+                data.SetData("error", d);
             }
             else
             {
-                SetData("countFollowers", new Dictionary<string, string>[1] { d[0] });
+                data.SetData("countFollowers", new Dictionary<string, string>[1] { d[0] });
                 if (d.Length > 1)
                 {
                     Dictionary<string, string>[] d1 = new Dictionary<string, string>[d.Length - 1];
@@ -217,7 +183,7 @@ namespace VkAPI
                     {
                         d1[i] = new Dictionary<string, string>(d[i + 1]);
                     }
-                    SetData("getFollowers", d1);
+                    data.SetData("getFollowers", d1);
                 }
             }
         }
