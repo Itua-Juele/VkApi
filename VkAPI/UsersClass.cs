@@ -19,9 +19,9 @@ namespace VkAPI
             /// </summary>
             /// <fields name="ids">id пользователей</fields>
             /// <returns></returns>
-            public static Dictionary<string, string>[] Get(string[] ids)
+            public static Dictionary<string, string>[] get(string[] ids)
             {
-                return Get(ids, null, "nom");
+                return get(ids, null, "nom");
             }
             /// <summary>
             /// Возвращает расширеную информацию о пользователях
@@ -29,9 +29,9 @@ namespace VkAPI
             /// <fields name="ids">id пользователей</fields>
             /// <fields name="fields">параметры, которые вы хотите получить</fields>
             /// <returns></returns>
-            public static Dictionary<string, string>[] Get(string[] ids, string[] fields)
+            public static Dictionary<string, string>[] get(string[] ids, string[] fields)
             {
-                return Get(ids, fields, "nom");
+                return get(ids, fields, "nom");
             }
             /// <summary>
             /// Возвращает расширеную информацию о пользователях
@@ -40,7 +40,7 @@ namespace VkAPI
             /// <fields name="fields">параметры, которые вы хотите получить</fields>
             /// <fields name="name_case">падеж для склонения имени и фамилии пользователя</fields>
             /// <returns></returns>
-            public static Dictionary<string, string>[] Get(string[] ids, string[] fields, string name_case)
+            public static Dictionary<string, string>[] get(string[] ids, string[] fields, string name_case)
             {
                 string url;
                 if (fields == null)
@@ -62,9 +62,9 @@ namespace VkAPI
             /// </summary>
             /// <param name="id">идентификатор пользователя</param>
             /// <returns></returns>
-            public static Dictionary<string, string>[] GetFollowers(string id)
+            public static Dictionary<string, string>[] getFollowers(string id)
             {
-                return GetFollowers(id, 0, 5, null,"nom");
+                return getFollowers(id, 0, 5, null,"nom");
             }
             /// <summary>
             /// Возвращает список идентификаторов пользователей, которые являются подписчиками пользователя. 
@@ -72,9 +72,9 @@ namespace VkAPI
             /// <param name="id">идентификатор пользователя</param>
             /// <param name="offset">смещение, необходимое для выборки определенного подмножества подписчиков (положительное число)</param>
             /// <returns></returns>
-            public static Dictionary<string, string>[] GetFollowers(string id, int offset)
+            public static Dictionary<string, string>[] getFollowers(string id, int offset)
             {
-                return GetFollowers(id, offset, 5, null, "nom");
+                return getFollowers(id, offset, 5, null, "nom");
             }
             /// <summary>
             /// Возвращает список идентификаторов пользователей, которые являются подписчиками пользователя. 
@@ -83,9 +83,9 @@ namespace VkAPI
             /// <param name="offset">смещение, необходимое для выборки определенного подмножества подписчиков (положительное число)</param>
             /// <param name="count">количество подписчиков, информацию о которых нужно получить (Не больше 100)</param>
             /// <returns></returns>
-            public static Dictionary<string, string>[] GetFollowers(string id, int offset, int count)
+            public static Dictionary<string, string>[] getFollowers(string id, int offset, int count)
             {
-                return GetFollowers(id, offset, count, null, "nom");
+                return getFollowers(id, offset, count, null, "nom");
             }
             /// <summary>
             /// Возвращает список идентификаторов пользователей, которые являются подписчиками пользователя. 
@@ -95,10 +95,10 @@ namespace VkAPI
             /// <param name="count">количество подписчиков, информацию о которых нужно получить (Не больше 100)</param>
             /// <param name="fields">список дополнительных полей профилей, которые необходимо вернуть</param>
             /// <returns></returns>
-            public static Dictionary<string, string>[] GetFollowers(string id, int offset, int count,
+            public static Dictionary<string, string>[] getFollowers(string id, int offset, int count,
                 string[] fields)
             {
-                return GetFollowers(id, offset, count, fields, "nom");
+                return getFollowers(id, offset, count, fields, "nom");
             }
             /// <summary>
             /// Возвращает список идентификаторов пользователей, которые являются подписчиками пользователя. 
@@ -109,7 +109,7 @@ namespace VkAPI
             /// <param name="fields">список дополнительных полей профилей, которые необходимо вернуть</param>
             /// <param name="name_case">падеж для склонения имени и фамилии пользователя</param>
             /// <returns></returns>
-            public static Dictionary<string, string>[] GetFollowers(string id, int offset, int count,
+            public static Dictionary<string, string>[] getFollowers(string id, int offset, int count,
                 string[] fields, string name_case)
             {
                 string url;
@@ -134,9 +134,9 @@ namespace VkAPI
             /// <param name="latitude">географическая широта точки, в которой в данный момент находится пользователь, заданная в градусах (от -90 до 90)</param>
             /// <param name="longitude">географическая долгота точки, в которой в данный момент находится пользователь, заданная в градусах (от -180 до 180)</param>
             /// <returns></returns>
-            public static Dictionary<string, string>[] GetNearby(string access_token, float latitude, float longitude)
+            public static Dictionary<string, string>[] getNearby(string access_token, float latitude, float longitude)
             {
-                return GetNearby(access_token, latitude, longitude, null, 1, 7200, 1, "nom");
+                return getNearby(access_token, latitude, longitude, null, 1, 7200, 1, "nom");
             }
             /// <summary>
             /// Индексирует текущее местоположение пользователя и возвращает список пользователей, которые находятся вблизи
@@ -146,10 +146,10 @@ namespace VkAPI
             /// <param name="longitude">географическая долгота точки, в которой в данный момент находится пользователь, заданная в градусах (от -180 до 180)</param>
             /// <param name="fields">список дополнительных полей профилей, которые необходимо вернуть</param>
             /// <returns></returns>
-            public static Dictionary<string, string>[] GetNearby(string access_token, float latitude, float longitude,
+            public static Dictionary<string, string>[] getNearby(string access_token, float latitude, float longitude,
                 string[] fields)
             {
-                return GetNearby(access_token, latitude, longitude, fields, 1, 7200, 1, "nom");
+                return getNearby(access_token, latitude, longitude, fields, 1, 7200, 1, "nom");
             }
             /// <summary>
             /// Индексирует текущее местоположение пользователя и возвращает список пользователей, которые находятся вблизи
@@ -160,10 +160,10 @@ namespace VkAPI
             /// <param name="accuracy">точность текущего местоположения пользователя в метрах</param>
             /// <param name="fields">список дополнительных полей профилей, которые необходимо вернуть</param>
             /// <returns></returns>
-            public static Dictionary<string, string>[] GetNearby(string access_token, float latitude, float longitude,
+            public static Dictionary<string, string>[] getNearby(string access_token, float latitude, float longitude,
                 string[] fields, int accuracy)
             {
-                return GetNearby(access_token, latitude, longitude, fields, accuracy, 7200, 1, "nom");
+                return getNearby(access_token, latitude, longitude, fields, accuracy, 7200, 1, "nom");
             }
             /// <summary>
             /// Индексирует текущее местоположение пользователя и возвращает список пользователей, которые находятся вблизи
@@ -175,10 +175,10 @@ namespace VkAPI
             /// <param name="timeout">время в секундах через которое пользователь должен перестать находиться через поиск по местоположению</param>
             /// <param name="fields">список дополнительных полей профилей, которые необходимо вернуть</param>
             /// <returns></returns>
-            public static Dictionary<string, string>[] GetNearby(string access_token, float latitude, float longitude,
+            public static Dictionary<string, string>[] getNearby(string access_token, float latitude, float longitude,
                 string[] fields, int accuracy, int timeout)
             {
-                return GetNearby(access_token, latitude, longitude, fields, accuracy, timeout, 1, "nom");
+                return getNearby(access_token, latitude, longitude, fields, accuracy, timeout, 1, "nom");
             }
             /// <summary>
             /// Индексирует текущее местоположение пользователя и возвращает список пользователей, которые находятся вблизи
@@ -191,10 +191,10 @@ namespace VkAPI
             /// <param name="radius">тип радиуса зоны поиска (от 1 до 4) </param>
             /// <param name="fields">список дополнительных полей профилей, которые необходимо вернуть</param>
             /// <returns></returns>
-            public static Dictionary<string, string>[] GetNearby(string access_token, float latitude, float longitude,
+            public static Dictionary<string, string>[] getNearby(string access_token, float latitude, float longitude,
                 string[] fields, int accuracy, int timeout, int radius)
             {
-                return GetNearby(access_token, latitude, longitude, fields, accuracy, timeout, radius, "nom");
+                return getNearby(access_token, latitude, longitude, fields, accuracy, timeout, radius, "nom");
             }
             /// <summary>
             /// Индексирует текущее местоположение пользователя и возвращает список пользователей, которые находятся вблизи
@@ -208,7 +208,7 @@ namespace VkAPI
             /// <param name="fields">список дополнительных полей профилей, которые необходимо вернуть</param>
             /// <param name="name_case">падеж для склонения имени и фамилии пользователя</param>
             /// <returns></returns>
-            public static Dictionary<string, string>[] GetNearby(string access_token, float latitude, float longitude,
+            public static Dictionary<string, string>[] getNearby(string access_token, float latitude, float longitude,
                 string[] fields, int accuracy, int timeout, int radius, string name_case)
             {
                 string url;
@@ -243,7 +243,7 @@ namespace VkAPI
             /// <param name="fields">список дополнительных полей для объектов user и group, которые необходимо вернуть. 
             /// Этот параметр используется только если передан extended=true</param>
             /// <returns></returns>
-            public static Dictionary<string, string>[] GetSubscriptions(string id, bool extended, int offset, int count,
+            public static Dictionary<string, string>[] getSubscriptions(string id, bool extended, int offset, int count,
                 string[] fields)
             {
                 string url;
@@ -307,9 +307,9 @@ namespace VkAPI
             /// <param name="count">количество подписок, которые необходимо вернуть. 
             /// Этот параметр используется только если передан extended=true</param>
             /// <returns></returns>
-            public static Dictionary<string, string>[] GetSubscriptions(string id, bool extended, int offset, int count)
+            public static Dictionary<string, string>[] getSubscriptions(string id, bool extended, int offset, int count)
             {
-                return GetSubscriptions(id, extended, offset, count, null);
+                return getSubscriptions(id, extended, offset, count, null);
             }
             /// <summary>
             /// Возвращает список идентификаторов пользователей и публичных страниц, которые входят в список подписок пользователя.
@@ -320,9 +320,9 @@ namespace VkAPI
             /// <param name="offset">смещение необходимое для выборки определенного подмножества подписок. 
             /// Этот параметр используется только если передан extended=true</param>
             /// <returns></returns>
-            public static Dictionary<string, string>[] GetSubscriptions(string id, bool extended, int offset)
+            public static Dictionary<string, string>[] getSubscriptions(string id, bool extended, int offset)
             {
-                return GetSubscriptions(id, extended, offset, 5, null);
+                return getSubscriptions(id, extended, offset, 5, null);
             }
             /// <summary>
             /// Возвращает список идентификаторов пользователей и публичных страниц, которые входят в список подписок пользователя.
@@ -331,9 +331,9 @@ namespace VkAPI
             /// <param name="extended">true - возвращает объединенный список, содержащий объекты group и user вместе
             /// false - возвращает список идентификаторов групп и пользователей отдельно</param>
             /// <returns></returns>
-            public static Dictionary<string, string>[] GetSubscriptions(string id, bool extended)
+            public static Dictionary<string, string>[] getSubscriptions(string id, bool extended)
             {
-                return GetSubscriptions(id, extended, 0, 5, null);
+                return getSubscriptions(id, extended, 0, 5, null);
             }
             /// <summary>
             /// Возвращает список идентификаторов пользователей и публичных страниц, 
@@ -341,9 +341,30 @@ namespace VkAPI
             /// </summary>
             /// <param name="id">идентификатор пользователя, подписки которого необходимо получить</param>
             /// <returns></returns>
-            public static Dictionary<string, string>[] GetSubscriptions(string id)
+            public static Dictionary<string, string>[] getSubscriptions(string id)
             {
-                return GetSubscriptions(id, false, 0, 5, null);
+                return getSubscriptions(id, false, 0, 5, null);
+            }
+
+            // Метод users.isAppUser |-----------------------------------------
+            /// <summary>
+            /// Возвращает информацию о том, установил ли пользователь приложение
+            /// </summary>
+            /// <param name="id">идентификатор пользователя</param>
+            /// <param name="access_token">Ключ доступа</param>
+            /// <returns></returns>
+            public static string isAppUser(string id, string access_token)
+            {
+                string dataJson = VkJson.getResponse("https://api.vk.com/method/users.isAppUser?user_id=" +
+                    id + "&access_token=" + access_token);
+                if (VkJson.SearchKey("error", dataJson) == -1)
+                {
+                    return VkJson.GetValueDictionary("response", dataJson).Substring(1, 1);
+                }
+                else
+                {
+                    return "error_code " + VkJson.ResponseError(dataJson)["error_code"];
+                }
             }
         }
     }
