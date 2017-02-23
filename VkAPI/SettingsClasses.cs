@@ -26,25 +26,22 @@ namespace VkAPI
                 char s = json[pos + key.Length + 2];
                 if (s == '{')
                 {
-                    json = GetSubDictionary(key, json);
+                    try { json = GetSubDictionary(key, json); }
+                    catch { }
                 }
                 else if (s == '[')
                 {
-                    json = GetListDictionary(key, json);
+                    try { json = GetListDictionary(key, json); }
+                    catch { }
                 }
                 else
                 {
                     json = json.Substring(pos + key.Length + 2).Split(',')[0];
-                    s = json[json.Length - 1];
-                    if (s == '}')
+                    if (json[json.Length - 1] == '}')
                     {
                         json = json.Substring(0, json.Length - 1);
                     }
                 }
-            }
-            else
-            {
-                json = "not found";
             }
             return json;
         }
@@ -59,21 +56,17 @@ namespace VkAPI
         {
             int position = -1;
             int len = json.Length - key.Length - 1;
-            char s;
+            char s = key[0];
             char s1 = key[0];
             for (int i = 1; i < len; i++)
             {
-                s = json[i];
-                if (s == s1)
+                if (json[i] == s)
                 {
-                    s = json[i - 1];
-                    if (s == '"')
+                    if (json[i - 1] == '"')
                     {
-                        s = json[i + key.Length];
-                        if (s == '"')
+                        if (json[i + key.Length] == '"')
                         {
-                            s = json[i + key.Length + 1];
-                            if ((s == ':') & (json.Substring(i, key.Length) == key))
+                            if ((json[i + key.Length + 1] == ':') & (json.Substring(i, key.Length) == key))
                             {
                                 position = i;
                                 break;
@@ -95,20 +88,22 @@ namespace VkAPI
         {
             int braskets = 0;
             int[] settings_list = new int[2] { -1, -1 };
-            bool quotes = false;
+            int quotes = 0;
             char s;
             for (int i = begin; i < str.Length; i++)
             {
                 s = str[i];
-                if ((s == '"') & !quotes)
+                // Отслеживаем закрытость ковычек
+                if ((s == '"') & (str[i - 1] == ':'))
                 {
-                    quotes = true;
+                    quotes++;
                 }
-                else if (s == '"')
+                else if ((s == '"') & ((str[i + 1] == ',') | (str[i + 1] == '}')))
                 {
-                    quotes = false;
+                    quotes--;
                 }
-                if (!quotes)
+
+                if (quotes == 0)
                 {
                     if (s == '[')
                     {
@@ -162,7 +157,7 @@ namespace VkAPI
         internal static string GetSubDictionary(string key, string dictionary)
         {
             int braskets = 0;
-            bool quotes = true;
+            int quotes = 0;
             int begin = 0;
             int pos = SearchKey(key, dictionary);
             char s;
@@ -171,15 +166,17 @@ namespace VkAPI
                 for (int i = pos; i < dictionary.Length; i++)
                 {
                     s = dictionary[i];
-                    if ((s == '"') & quotes)
+                    // Отслеживаем закрытость ковычек
+                    if ((s == '"') & (dictionary[i - 1] == ':'))
                     {
-                        quotes = false;
-                    }else if ((s == '"') & !quotes)
+                        quotes++;
+                    }
+                    else if ((s == '"') & ((dictionary[i + 1] == ',') | (dictionary[i + 1] == '}')))
                     {
-                        quotes = true;
+                        quotes--;
                     }
 
-                    if (!quotes)
+                    if (quotes == 0)
                     {
                         if (s == '{')
                         {
@@ -219,18 +216,17 @@ namespace VkAPI
             for (int i = 1; i < dataJson.Length - 1; i++)
             {
                 s = dataJson[i];
-                if ((s == '"') & (quotes == 0))
+                if ((s == '"') & (dataJson[i - 1] == ':'))
                 {
                     quotes++;
                 }
-                else if (s == '"')
+                else if ((s == '"') & ((dataJson[i + 1] == ',') | (dataJson[i + 1] == '}')))
                 {
                     quotes--;
                 }
 
                 if (quotes == 0)
                 {
-                    s = dataJson[i];
                     if ((s == '{') | (s == '['))
                     {
                         basket++;
@@ -265,7 +261,7 @@ namespace VkAPI
         public static Dictionary<string, string> ResponseError(string errorJson)
         {
             Dictionary<string, string> data = new Dictionary<string, string>();
-            if (SearchKey("response",errorJson) != -1)
+            if (SearchKey("response", errorJson) != -1)
             {
                 data.Add("response", errorJson);
             }
@@ -291,7 +287,6 @@ namespace VkAPI
             }
             // Удаляет в строке ненужные символы
             string[] jsonLine;
-            char s;
             for (int i = 0; i < jsonLines.Length; i++)
             {
                 if (i < jsonLines.Length - 1)
@@ -301,8 +296,7 @@ namespace VkAPI
                 }
 
                 jsonLine = jsonLines[i].Split(new char[] { ':' }, 2);
-                s = jsonLine[1][0];
-                if (s == '"')
+                if (jsonLine[1][0] == '"')
                 {
                     if (jsonLine[1].Length == 2)
                     {
@@ -334,19 +328,18 @@ namespace VkAPI
         /// <summary>
         /// Преобразует строку Json в читабельный вид
         /// </summary>
-        /// <param name="str">строка json-формата</param>
+        /// <param name="dataJson">строка json-формата</param>
         /// <returns></returns>
-        private static string SerializeJson(string str)
-        // Преобразует строку в Json формат <string, string>
+        private static string SerializeJson(string dataJson)
         {
             int basket = 0;
             int quotes = 0;
             string json = "";
             char s;
-            for (int i = 1; i < str.Length - 1; i++)
+            for (int i = 1; i < dataJson.Length - 1; i++)
             {
+                s = dataJson[i];
                 // Отслеживаем уровень, чтобы не попасть во внутрений словарь
-                s = str[i];
                 if ((s == '{') | (s == '['))
                 {
                     basket++;
@@ -356,20 +349,27 @@ namespace VkAPI
                     basket--;
                 }
 
-                // Отслеживаем закрытость ковычек
-                if ((quotes == 0) & (s == '"'))
+                if (basket == 0)
                 {
-                    quotes++;
-                }
-                else if ((quotes == 1) & (s == '"'))
-                {
-                    quotes--;
-                }
+                    // Отслеживаем закрытость ковычек
+                    if ((s == '"') & (dataJson[i - 1] == ':'))
+                    {
+                        quotes++;
+                    }
+                    else if ((s == '"') & ((dataJson[i + 1] == ',') | (dataJson[i + 1] == '}')))
+                    {
+                        quotes--;
+                    }
 
-                json += s;
-                if ((s == ',') & (basket == 0) & (quotes == 0))
+                    json += s;
+                    if ((quotes == 0) & (s == ','))
+                    {
+                        json += "\n";
+                    }
+                }
+                else
                 {
-                    json += "\n";
+                    json += s;
                 }
             }
             return json;
