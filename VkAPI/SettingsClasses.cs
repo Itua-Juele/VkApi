@@ -4,7 +4,7 @@ using System.Text.RegularExpressions;
 using System.Net;
 using System.IO;
 
-namespace VkAPI
+namespace VkNet
 {
     /// <summary>
     /// Класс для обработки ответов от сервера VK
@@ -26,25 +26,23 @@ namespace VkAPI
                 char s = json[pos + key.Length + 2];
                 if (s == '{')
                 {
-                    json = GetSubDictionary(key, json);
+                    try { json = GetSubDictionary(key, json); }
+                    catch { }
                 }
                 else if (s == '[')
                 {
-                    json = GetListDictionary(key, json);
+                    try { json = GetListDictionary(key, json); }
+                    catch { }
                 }
                 else
                 {
                     json = json.Substring(pos + key.Length + 2).Split(',')[0];
-                    s = json[json.Length - 1];
-                    if (s == '}')
+                    if (json[json.Length - 1] == '}')
                     {
                         json = json.Substring(0, json.Length - 1);
                     }
+                    if ((json[0] == '"') & (json[json.Length -1] == '"')) { json = json.Substring(1, json.Length - 2); }
                 }
-            }
-            else
-            {
-                json = "not found";
             }
             return json;
         }
@@ -59,21 +57,17 @@ namespace VkAPI
         {
             int position = -1;
             int len = json.Length - key.Length - 1;
-            char s;
+            char s = key[0];
             char s1 = key[0];
             for (int i = 1; i < len; i++)
             {
-                s = json[i];
-                if (s == s1)
+                if (json[i] == s)
                 {
-                    s = json[i - 1];
-                    if (s == '"')
+                    if (json[i - 1] == '"')
                     {
-                        s = json[i + key.Length];
-                        if (s == '"')
+                        if (json[i + key.Length] == '"')
                         {
-                            s = json[i + key.Length + 1];
-                            if ((s == ':') & (json.Substring(i, key.Length) == key))
+                            if ((json[i + key.Length + 1] == ':') & (json.Substring(i, key.Length) == key))
                             {
                                 position = i;
                                 break;
@@ -95,20 +89,28 @@ namespace VkAPI
         {
             int braskets = 0;
             int[] settings_list = new int[2] { -1, -1 };
-            bool quotes = false;
+            int quotes = 0;
             char s;
             for (int i = begin; i < str.Length; i++)
             {
                 s = str[i];
-                if ((s == '"') & !quotes)
+                // Отслеживаем закрытость ковычек
+                if ((s == '"') & (str[i - 1] == ':'))
                 {
-                    quotes = true;
+                    quotes++;
                 }
-                else if (s == '"')
+                else if ((s == '"') & (quotes > 0))
                 {
-                    quotes = false;
+                    if ((str[i + 1] == ',') | (str[i + 1] == '}'))
+                    {
+                        if (str[i - 1] != '\\')
+                        {
+                            quotes--;
+                        }
+                    }
                 }
-                if (!quotes)
+
+                    if (quotes == 0)
                 {
                     if (s == '[')
                     {
@@ -162,7 +164,7 @@ namespace VkAPI
         internal static string GetSubDictionary(string key, string dictionary)
         {
             int braskets = 0;
-            bool quotes = true;
+            int quotes = 0;
             int begin = 0;
             int pos = SearchKey(key, dictionary);
             char s;
@@ -171,15 +173,23 @@ namespace VkAPI
                 for (int i = pos; i < dictionary.Length; i++)
                 {
                     s = dictionary[i];
-                    if ((s == '"') & quotes)
+                    // Отслеживаем закрытость ковычек
+                    if ((s == '"') & (dictionary[i - 1] == ':'))
                     {
-                        quotes = false;
-                    }else if ((s == '"') & !quotes)
+                        quotes++;
+                    }
+                    else if ((s == '"') & (quotes > 0))
                     {
-                        quotes = true;
+                        if ((dictionary[i + 1] == ',') | (dictionary[i + 1] == '}'))
+                        {
+                            if (dictionary[i - 1] != '\\')
+                            {
+                                quotes--;
+                            }
+                        }
                     }
 
-                    if (!quotes)
+                    if (quotes == 0)
                     {
                         if (s == '{')
                         {
@@ -219,18 +229,23 @@ namespace VkAPI
             for (int i = 1; i < dataJson.Length - 1; i++)
             {
                 s = dataJson[i];
-                if ((s == '"') & (quotes == 0))
+                if ((s == '"') & (dataJson[i - 1] == ':'))
                 {
                     quotes++;
                 }
-                else if (s == '"')
+                else if ((s == '"') & (quotes > 0))
                 {
-                    quotes--;
+                    if ((dataJson[i + 1] == ',') | (dataJson[i + 1] == '}'))
+                    {
+                        if (dataJson[i - 1] != '\\')
+                        {
+                            quotes--;
+                        }
+                    }
                 }
 
                 if (quotes == 0)
                 {
-                    s = dataJson[i];
                     if ((s == '{') | (s == '['))
                     {
                         basket++;
@@ -265,7 +280,7 @@ namespace VkAPI
         public static Dictionary<string, string> ResponseError(string errorJson)
         {
             Dictionary<string, string> data = new Dictionary<string, string>();
-            if (SearchKey("response",errorJson) != -1)
+            if (SearchKey("response", errorJson) != -1)
             {
                 data.Add("response", errorJson);
             }
@@ -282,7 +297,7 @@ namespace VkAPI
         /// <param name="data">словар для заполнения</param>
         /// <param name="json">ответ сервера в json формате, без внешнего словаря response или error</param>
         /// <param name="key">значение, которое добавляется перед ключем</param>
-        public static void FillDictionary(ref Dictionary<string, string> data, string json, string key = "")
+        public static void FillDictionary(ref Dictionary<string, string> data, string json, string key)
         {
             string[] jsonLines = SerializeJson(json).Split('\n');
             if (data == null)
@@ -291,7 +306,6 @@ namespace VkAPI
             }
             // Удаляет в строке ненужные символы
             string[] jsonLine;
-            char s;
             for (int i = 0; i < jsonLines.Length; i++)
             {
                 if (i < jsonLines.Length - 1)
@@ -301,8 +315,7 @@ namespace VkAPI
                 }
 
                 jsonLine = jsonLines[i].Split(new char[] { ':' }, 2);
-                s = jsonLine[1][0];
-                if (s == '"')
+                if (jsonLine[1][0] == '"')
                 {
                     if (jsonLine[1].Length == 2)
                     {
@@ -330,23 +343,31 @@ namespace VkAPI
                 }
             }
         }
+        /// <summary>
+        /// Заполняет словарь в соответствии с ответом сервера
+        /// </summary>
+        /// <param name="data">словар для заполнения</param>
+        /// <param name="json">ответ сервера в json формате, без внешнего словаря response или error</param>
+        public static void FillDictionary(ref Dictionary<string, string> data, string json)
+        {
+            FillDictionary(ref data, json, "");
+        }
 
         /// <summary>
         /// Преобразует строку Json в читабельный вид
         /// </summary>
-        /// <param name="str">строка json-формата</param>
+        /// <param name="dataJson">строка json-формата</param>
         /// <returns></returns>
-        private static string SerializeJson(string str)
-        // Преобразует строку в Json формат <string, string>
+        private static string SerializeJson(string dataJson)
         {
             int basket = 0;
             int quotes = 0;
             string json = "";
             char s;
-            for (int i = 1; i < str.Length - 1; i++)
+            for (int i = 1; i < dataJson.Length - 1; i++)
             {
+                s = dataJson[i];
                 // Отслеживаем уровень, чтобы не попасть во внутрений словарь
-                s = str[i];
                 if ((s == '{') | (s == '['))
                 {
                     basket++;
@@ -356,20 +377,27 @@ namespace VkAPI
                     basket--;
                 }
 
-                // Отслеживаем закрытость ковычек
-                if ((quotes == 0) & (s == '"'))
+                if (basket == 0)
                 {
-                    quotes++;
-                }
-                else if ((quotes == 1) & (s == '"'))
-                {
-                    quotes--;
-                }
+                    // Отслеживаем закрытость ковычек
+                    if ((s == '"') & (dataJson[i - 1] == ':'))
+                    {
+                        quotes++;
+                    }
+                    else if ((s == '"') & ((dataJson[i + 1] == ',') | (dataJson[i + 1] == '}')) & (dataJson[i - 1] != '\\'))
+                    {
+                        quotes--;
+                    }
 
-                json += s;
-                if ((s == ',') & (basket == 0) & (quotes == 0))
+                    json += s;
+                    if ((quotes == 0) & (s == ','))
+                    {
+                        json += "\n";
+                    }
+                }
+                else
                 {
-                    json += "\n";
+                    json += s;
                 }
             }
             return json;
@@ -473,7 +501,7 @@ namespace VkAPI
         /// <param name="dic_s">информация</param>
         public void SetData(string key, Dictionary<string, string>[] dic_s)
         {
-            if (GetData(key) == null)
+            if (!data.ContainsKey(key))
             {
                 data.Add(key, dic_s);
             }
@@ -483,16 +511,32 @@ namespace VkAPI
             }
         }
         /// <summary>
-        /// В ключе key утанавливает словарь dic под номером number
+        /// В ключе key утанавливает или создает словарь dic под номером number
+        /// Если number больше чем dic.Length, то dic будет вставлен после последнего елемента
         /// </summary>
         /// <param name="key"></param>
         /// <param name="number"></param>
         /// <param name="dic"></param>
         public void SetData(string key, int number, Dictionary<string, string> dic)
         {
-            if (GetData(key, number) != null)
+            if (data.ContainsKey(key))
             {
-                data[key][number] = dic;
+                if (number <= data[key].Length)
+                {
+                    data[key][number] = dic;
+                }
+                else
+                {
+                    Dictionary<string, string>[] d1 = GetData(key);
+                    Dictionary<string, string>[] d2 = new Dictionary<string, string>[d1.Length + 1];
+                    for (int i = 0; i < d1.Length; i++) { d2[i] = d1[i]; }
+                    d2[d1.Length] = dic;
+                    data[key] = d2;
+                }
+            }
+            else
+            {
+                SetData(key, new Dictionary<string, string>[1] { dic });
             }
         }
         /// <summary>
@@ -504,16 +548,26 @@ namespace VkAPI
         /// <param name="info"></param>
         public void SetData(string key, int number, string subkey, string info)
         {
-            if (GetData(key, number, subkey) != null)
+            if (data.ContainsKey(key))
             {
-                data[key][number][subkey] = info;
+                if (number <= data[key].Length)
+                {
+                    if (data[key][number].ContainsKey(subkey))
+                    {
+                        data[key][number][subkey] = info;
+                    }
+                    else
+                    {
+                        data[key][number].Add(subkey, info);
+                    }
+                }
+                else { }
             }
             else
             {
-                if (GetData(key, number) != null)
-                {
-                    data[key][number].Add(subkey, info);
-                }
+                Dictionary<string, string> d = new Dictionary<string, string>();
+                d.Add(subkey, info);
+                SetData(key, number, d);
             }
         }
     }
