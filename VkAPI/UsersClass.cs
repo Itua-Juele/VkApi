@@ -13,7 +13,7 @@ namespace VkNet
         /// </summary>
         public static class Users
         {
-            // Метод user.get |------------------------------------------------
+            //--------------------| Метод user.get |---------------------------
             /// <summary>
             /// Возвращает расширеную информацию о пользователях
             /// </summary>
@@ -21,18 +21,18 @@ namespace VkNet
             /// <fields name="fields">параметры, которые вы хотите получить</fields>
             /// <fields name="name_case">падеж для склонения имени и фамилии пользователя</fields>
             /// <returns></returns>
-            public static Dictionary<string, string>[] get(string[] ids, string[] fields, string name_case)
+            public static Dictionary<string, string>[] get(string[] user_ids, string[] fields, string name_case)
             {
                 string url;
                 if (fields == null)
                 {
                     url = String.Format("https://api.vk.com/method/users.get?user_ids={0}&fields=last_name&name_case={1}&version=5.62",
-                    String.Join(",", ids), name_case);
+                    String.Join(",", user_ids), name_case);
                 }
                 else
                 {
                     url = String.Format("https://api.vk.com/method/users.get?user_ids={0}&fields={1}&name_case={2}&version=5.62",
-                    String.Join(",", ids), String.Join(",", fields), name_case);
+                    String.Join(",", user_ids), String.Join(",", fields), name_case);
                 }
                 string dataJson = VkJson.getResponse(url);
                 // попытка обработать и вернуть ответ
@@ -53,9 +53,9 @@ namespace VkNet
             /// </summary>
             /// <fields name="ids">id пользователей</fields>
             /// <returns></returns>
-            public static Dictionary<string, string>[] get(string[] ids)
+            public static Dictionary<string, string>[] get(string[] user_ids)
             {
-                return get(ids, null, "nom");
+                return get(user_ids, null, "nom");
             }
             /// <summary>
             /// Возвращает расширеную информацию о пользователях
@@ -63,22 +63,21 @@ namespace VkNet
             /// <fields name="ids">id пользователей</fields>
             /// <fields name="fields">параметры, которые вы хотите получить</fields>
             /// <returns></returns>
-            public static Dictionary<string, string>[] get(string[] ids, string[] fields)
+            public static Dictionary<string, string>[] get(string[] user_ids, string[] fields)
             {
-                return get(ids, fields, "nom");
+                return get(user_ids, fields, "nom");
             }
-
-            // Метод users.getFollowers |--------------------------------------
+            //--------------------| Метод users.getFollowers |-----------------
             /// <summary>
             /// Возвращает список идентификаторов пользователей, которые являются подписчиками пользователя. 
             /// </summary>
-            /// <param name="id">идентификатор пользователя</param>
+            /// <param name="user_id">идентификатор пользователя</param>
             /// <param name="offset">смещение, необходимое для выборки определенного подмножества подписчиков (положительное число)</param>
             /// <param name="count">количество подписчиков, информацию о которых нужно получить (Не больше 100)</param>
             /// <param name="fields">список дополнительных полей профилей, которые необходимо вернуть</param>
             /// <param name="name_case">падеж для склонения имени и фамилии пользователя</param>
             /// <returns></returns>
-            public static Dictionary<string, string>[] getFollowers(string id, int offset, int count,
+            public static Dictionary<string, string>[] getFollowers(string user_id, int offset, int count,
                 string[] fields, string name_case)
             {
                 if (count > 1000)
@@ -89,12 +88,12 @@ namespace VkNet
                 if (fields == null)
                 {
                     url = String.Format("https://api.vk.com/method/users.getFollowers?user_id={0}&offset={1}&count={2}&name_case={3}&version=5.62",
-                    id, offset, count, name_case);
+                    user_id, offset, count, name_case);
                 }
                 else
                 {
                     url = String.Format("https://api.vk.com/method/users.getFollowers?user_id={0}&offset={1}&count={2}&fields={3}&name_case={4}&version=5.62",
-                    id, offset, count, String.Join(",", fields), name_case);
+                    user_id, offset, count, String.Join(",", fields), name_case);
                 }
 
                 string dataJson = VkJson.getResponse(url);
@@ -114,48 +113,47 @@ namespace VkNet
             /// <summary>
             /// Возвращает список идентификаторов пользователей, которые являются подписчиками пользователя. 
             /// </summary>
-            /// <param name="id">идентификатор пользователя</param>
+            /// <param name="user_id">идентификатор пользователя</param>
             /// <returns></returns>
-            public static Dictionary<string, string>[] getFollowers(string id)
+            public static Dictionary<string, string>[] getFollowers(string user_id)
             {
-                return getFollowers(id, 0, 5, null,"nom");
+                return getFollowers(user_id, 0, 5, null,"nom");
             }
             /// <summary>
             /// Возвращает список идентификаторов пользователей, которые являются подписчиками пользователя. 
             /// </summary>
-            /// <param name="id">идентификатор пользователя</param>
+            /// <param name="user_id">идентификатор пользователя</param>
             /// <param name="offset">смещение, необходимое для выборки определенного подмножества подписчиков (положительное число)</param>
             /// <returns></returns>
-            public static Dictionary<string, string>[] getFollowers(string id, int offset)
+            public static Dictionary<string, string>[] getFollowers(string user_id, int offset)
             {
-                return getFollowers(id, offset, 5, null, "nom");
+                return getFollowers(user_id, offset, 5, null, "nom");
             }
             /// <summary>
             /// Возвращает список идентификаторов пользователей, которые являются подписчиками пользователя. 
             /// </summary>
-            /// <param name="id">идентификатор пользователя</param>
+            /// <param name="user_id">идентификатор пользователя</param>
             /// <param name="offset">смещение, необходимое для выборки определенного подмножества подписчиков (положительное число)</param>
             /// <param name="count">количество подписчиков, информацию о которых нужно получить (Не больше 100)</param>
             /// <returns></returns>
-            public static Dictionary<string, string>[] getFollowers(string id, int offset, int count)
+            public static Dictionary<string, string>[] getFollowers(string user_id, int offset, int count)
             {
-                return getFollowers(id, offset, count, null, "nom");
+                return getFollowers(user_id, offset, count, null, "nom");
             }
             /// <summary>
             /// Возвращает список идентификаторов пользователей, которые являются подписчиками пользователя. 
             /// </summary>
-            /// <param name="id">идентификатор пользователя</param>
+            /// <param name="user_id">идентификатор пользователя</param>
             /// <param name="offset">смещение, необходимое для выборки определенного подмножества подписчиков (положительное число)</param>
             /// <param name="count">количество подписчиков, информацию о которых нужно получить (Не больше 100)</param>
             /// <param name="fields">список дополнительных полей профилей, которые необходимо вернуть</param>
             /// <returns></returns>
-            public static Dictionary<string, string>[] getFollowers(string id, int offset, int count,
+            public static Dictionary<string, string>[] getFollowers(string user_id, int offset, int count,
                 string[] fields)
             {
-                return getFollowers(id, offset, count, fields, "nom");
+                return getFollowers(user_id, offset, count, fields, "nom");
             }
-
-            // Метод users.getNearby |-----------------------------------------
+            //--------------------| Метод users.getNearby |--------------------
             /// <summary>
             /// Индексирует текущее местоположение пользователя и возвращает список пользователей, которые находятся вблизи
             /// </summary>
@@ -269,12 +267,11 @@ namespace VkNet
             {
                 return getNearby(access_token, latitude, longitude, fields, accuracy, timeout, radius, "nom");
             }
-
-            // Метод users.getSubscriptions |----------------------------------
+            //--------------------| Метод users.getSubscriptions |-------------
             /// <summary>
             /// Возвращает список идентификаторов пользователей и публичных страниц, которые входят в список подписок пользователя.
             /// </summary>
-            /// <param name="id">идентификатор пользователя, подписки которого необходимо получить</param>
+            /// <param name="user_id">идентификатор пользователя, подписки которого необходимо получить</param>
             /// <param name="extended">true - возвращает объединенный список, содержащий объекты group и user вместе
             /// false - возвращает список идентификаторов групп и пользователей отдельно</param>
             /// <param name="offset">смещение необходимое для выборки определенного подмножества подписок. 
@@ -284,7 +281,7 @@ namespace VkNet
             /// <param name="fields">список дополнительных полей для объектов user и group, которые необходимо вернуть. 
             /// Этот параметр используется только если передан extended=true</param>
             /// <returns></returns>
-            public static Dictionary<string, string>[] getSubscriptions(string id, bool extended, int offset, int count,
+            public static Dictionary<string, string>[] getSubscriptions(string user_id, bool extended, int offset, int count,
                 string[] fields)
             {
                 if (count > 1000)
@@ -297,12 +294,12 @@ namespace VkNet
                     if (fields == null)
                     {
                         url = String.Format("https://api.vk.com/method/users.getSubscriptions?user_id={0}&extended=1" +
-                        "&offset={1}&count={2}&version=5.62", id, offset, count);
+                        "&offset={1}&count={2}&version=5.62", user_id, offset, count);
                     }
                     else
                     {
                         url = String.Format("https://api.vk.com/method/users.getSubscriptions?user_id={0}&extended=1" +
-                        "&offset={1}&count={2}&fields=last_name&version=5.62", id, offset, count, fields);
+                        "&offset={1}&count={2}&fields=last_name&version=5.62", user_id, offset, count, fields);
                     }
 
                     string dataJson = VkJson.getResponse(url);
@@ -335,7 +332,7 @@ namespace VkNet
                 }
                 else
                 {
-                    url = String.Format("https://api.vk.com/method/users.getSubscriptions?user_id={0}&extended=0&version=5.62", id);
+                    url = String.Format("https://api.vk.com/method/users.getSubscriptions?user_id={0}&extended=0&version=5.62", user_id);
 
                     string dataJson = VkJson.GetSubDictionary("response", VkJson.getResponse(url));
                     Dictionary<string, string>[] data;
@@ -374,7 +371,7 @@ namespace VkNet
             /// <summary>
             /// Возвращает список идентификаторов пользователей и публичных страниц, которые входят в список подписок пользователя.
             /// </summary>
-            /// <param name="id">идентификатор пользователя, подписки которого необходимо получить</param>
+            /// <param name="user_id">идентификатор пользователя, подписки которого необходимо получить</param>
             /// <param name="extended">true - возвращает объединенный список, содержащий объекты group и user вместе
             /// false - возвращает список идентификаторов групп и пользователей отдельно</param>
             /// <param name="offset">смещение необходимое для выборки определенного подмножества подписок. 
@@ -382,75 +379,82 @@ namespace VkNet
             /// <param name="count">количество подписок, которые необходимо вернуть. 
             /// Этот параметр используется только если передан extended=true</param>
             /// <returns></returns>
-            public static Dictionary<string, string>[] getSubscriptions(string id, bool extended, int offset, int count)
+            public static Dictionary<string, string>[] getSubscriptions(string user_id, bool extended, int offset, int count)
             {
-                return getSubscriptions(id, extended, offset, count, null);
+                return getSubscriptions(user_id, extended, offset, count, null);
             }
             /// <summary>
             /// Возвращает список идентификаторов пользователей и публичных страниц, которые входят в список подписок пользователя.
             /// </summary>
-            /// <param name="id">идентификатор пользователя, подписки которого необходимо получить</param>
+            /// <param name="user_id">идентификатор пользователя, подписки которого необходимо получить</param>
             /// <param name="extended">true - возвращает объединенный список, содержащий объекты group и user вместе
             /// false - возвращает список идентификаторов групп и пользователей отдельно</param>
             /// <param name="offset">смещение необходимое для выборки определенного подмножества подписок. 
             /// Этот параметр используется только если передан extended=true</param>
             /// <returns></returns>
-            public static Dictionary<string, string>[] getSubscriptions(string id, bool extended, int offset)
+            public static Dictionary<string, string>[] getSubscriptions(string user_id, bool extended, int offset)
             {
-                return getSubscriptions(id, extended, offset, 5, null);
+                return getSubscriptions(user_id, extended, offset, 5, null);
             }
             /// <summary>
             /// Возвращает список идентификаторов пользователей и публичных страниц, которые входят в список подписок пользователя.
             /// </summary>
-            /// <param name="id">идентификатор пользователя, подписки которого необходимо получить</param>
+            /// <param name="user_id">идентификатор пользователя, подписки которого необходимо получить</param>
             /// <param name="extended">true - возвращает объединенный список, содержащий объекты group и user вместе
             /// false - возвращает список идентификаторов групп и пользователей отдельно</param>
             /// <returns></returns>
-            public static Dictionary<string, string>[] getSubscriptions(string id, bool extended)
+            public static Dictionary<string, string>[] getSubscriptions(string user_id, bool extended)
             {
-                return getSubscriptions(id, extended, 0, 5, null);
+                return getSubscriptions(user_id, extended, 0, 5, null);
             }
             /// <summary>
             /// Возвращает список идентификаторов пользователей и публичных страниц, 
             /// которые входят в список подписок пользователя.
             /// </summary>
-            /// <param name="id">идентификатор пользователя, подписки которого необходимо получить</param>
+            /// <param name="user_id">идентификатор пользователя, подписки которого необходимо получить</param>
             /// <returns></returns>
-            public static Dictionary<string, string>[] getSubscriptions(string id)
+            public static Dictionary<string, string>[] getSubscriptions(string user_id)
             {
-                return getSubscriptions(id, false, 0, 5, null);
+                return getSubscriptions(user_id, false, 0, 5, null);
             }
-
-            // Метод users.isAppUser |-----------------------------------------
+            //--------------------| Метод users.isAppUser |--------------------
             /// <summary>
             /// Возвращает информацию о том, установил ли пользователь приложение
             /// </summary>
-            /// <param name="id">идентификатор пользователя</param>
+            /// <param name="user_id">идентификатор пользователя</param>
             /// <param name="access_token">Ключ доступа</param>
             /// <returns></returns>
-            public static string isAppUser(string id, string access_token)
+            public static Dictionary<string, string> isAppUser(string user_id, string access_token)
             {
                 string dataJson = VkJson.getResponse("https://api.vk.com/method/users.isAppUser?user_id=" +
-                    id + "&access_token=" + access_token);
+                    user_id + "&access_token=" + access_token);
                 try
                 {
                     if (VkJson.SearchKey("error", dataJson) == -1)
                     {
-                        return VkJson.GetValueDictionary("response", dataJson).Substring(1, 1);
+                        Dictionary<string, string> data = new Dictionary<string, string>();
+                        data.Add("response", VkJson.GetValueDictionary("response", dataJson));
+                        return data;
                     }
                     else
                     {
-                        return "error_code " + VkJson.ResponseError(dataJson)["error_code"];
+                        return VkJson.ResponseError(dataJson);
                     }
                 }
-                catch { return "Failed to process line: " + dataJson; }
+                catch
+                {
+                    Dictionary<string, string> data = new Dictionary<string, string>();
+                    data.Add("error", "Failed to process response");
+                    data.Add("response", dataJson);
+                    return data;
+                }
             }
 
-            // Метод users.report |--------------------------------------------
+            //--------------------| Метод users.report |-----------------------
             /// <summary>
             /// Позволяет пожаловаться на пользователя.
             /// </summary>
-            /// <param name="id">идентификатор пользователя, на которого нужно подать жалобу</param>
+            /// <param name="user_id">идентификатор пользователя, на которого нужно подать жалобу</param>
             /// <param name="type">тип жалобы, может принимать следующие значения:
             /// porn — порнографияж;
             /// spam — рассылка спама;
@@ -458,22 +462,31 @@ namespace VkNet
             /// advertisment — рекламная страница, засоряющая поиск</param>
             /// <param name="comment">комментарий к жалобе на пользователя</param>
             /// <returns>После успешного выполнения возвращает 1.</returns>
-            public static string report(string id, string type, string comment)
+            public static Dictionary<string, string> report(string user_id, string type, string comment)
             {
                 string dataJson = VkJson.getResponse(String.Format("https://api.vk.com/method/users.report?user_id={0}" +
-                    "&type{1}&comment{2}", id, type, comment));
+                    "&type{1}&comment{2}", user_id, type, comment));
+                // Попытка обработать и вернуть ответ
                 try
                 {
                     if (VkJson.SearchKey("error", dataJson) == -1)
                     {
-                        return VkJson.GetValueDictionary("response", dataJson).Substring(1, 1);
+                        Dictionary<string, string> data = new Dictionary<string, string>();
+                        data.Add("response", VkJson.GetValueDictionary("response", dataJson));
+                        return data;
                     }
                     else
                     {
-                        return "error_code " + VkJson.ResponseError(dataJson)["error_code"];
+                        return VkJson.ResponseError(dataJson);
                     }
                 }
-                catch { return "Failed to process line: " + dataJson; }
+                catch
+                {
+                    Dictionary<string, string> data = new Dictionary<string, string>();
+                    data.Add("error", "Failed to process response");
+                    data.Add("response", dataJson);
+                    return data;
+                }
             }
             /// </summary>
             /// <param name="id">идентификатор пользователя, на которого нужно подать жалобу</param>
@@ -483,12 +496,12 @@ namespace VkNet
             /// insult — оскорбительное поведение;
             /// advertisment — рекламная страница, засоряющая поиск</param>
             /// <returns>После успешного выполнения возвращает 1</returns>
-            public static string report(string id, string type)
+            public static Dictionary<string, string> report(string user_id, string type)
             {
-                return report(id, type, "");
+                return report(user_id, type, "");
             }
 
-            // Метод users.search |--------------------------------------------
+            //--------------------| Метод users.search |-----------------------
             /// <summary>
             /// Возвращает список пользователей в соответствии с заданным критерием поиска
             /// </summary>
@@ -584,7 +597,7 @@ namespace VkNet
         /// <summary>
         /// Содержит последний ответ об ошибке сервера
         /// </summary>
-        public Dictionary<string, string> Error { get { return data.GetData("error", 0); } }
+        public Dictionary<string, string> Error { get { return data.GetData("data", 1); } }
         /// <summary>
         /// Список фоловеров, где 1-й ключ это id фоловера, а дальше информация о нем. 
         /// Используйте метод getFollowers, чтобы заполнить его
@@ -612,7 +625,7 @@ namespace VkNet
         public User(string id, string access_token, string firstName, string lastName)
         {
             data = new VkData();
-            data.SetData("data", new Dictionary<string, string>[1] { new Dictionary<string, string>() });
+            data.SetData("data", new Dictionary<string, string>[2] { new Dictionary<string, string>(), new Dictionary<string, string>() });
             data.SetData("data", 0, "id", id);
             data.SetData("data", 0, "access_token", access_token);
             data.SetData("data", 0, "first_name", firstName);
@@ -642,7 +655,7 @@ namespace VkNet
         /// <param name="id">id пользователя</param>
         public User(string id) : this(id, "", "", "") { }
 
-        // Метод user.get |----------------------------------------------------
+        //--------------------| Метод user.get |---------------------------
         /// <summary>
         /// Устанавливает общую информацию о пользователe
         /// </summary>
@@ -653,7 +666,7 @@ namespace VkNet
             Dictionary<string, string>[] d = VkAPI.Users.get(new string[] { ID }, fields, name_case);
             if (d[0].ContainsKey("error_code"))
             {
-                data.SetData("error", d);
+                data.SetData("error", 1, d[0]);
             }
             else
             {
@@ -684,8 +697,7 @@ namespace VkNet
         {
             get(fields, "nom");
         }
-
-        // Метод users.getFollowers |------------------------------------------
+        //--------------------| Метод users.getFollowers |-----------------
         /// <summary>
         /// Устанавливает список идентификаторов пользователей, которые являются подписчиками пользователя
         /// </summary>
@@ -699,7 +711,7 @@ namespace VkNet
 
             if (d[0].ContainsKey("error_code"))
             {
-                data.SetData("error", d);
+                data.SetData("data",1, d[0]);
             }
             else
             {
@@ -749,27 +761,33 @@ namespace VkNet
         {
             getFollowers(offset, count, fields, "nom");
         }
-
-        // Метод users.isAppUser |---------------------------------------------
+        //--------------------| Метод users.isAppUser |--------------------
         /// <summary>
         /// Устанавливает установил ли пользователь приложение
         /// </summary>
         public void isAppUser()
         {
-            string s = VkAPI.Users.isAppUser(ID, AccessToken);
-            if (s == "1")
+            Dictionary<string, string> d = VkAPI.Users.isAppUser(ID, AccessToken);
+            if (d.Keys.Count == 1)
             {
-                data.SetData("data", 0, "isAppUser", "true");
+                if (d["response"] == "1")
+                {
+                    data.SetData("data", 0, "isAppUser", "true");
+                }
+                else
+                {
+                    data.SetData("data", 0, "isAppUser", "false");
+                }
             }
-            else if (s == "0")
+            else
             {
-                data.SetData("data", 0, "isAppUser", "false");
+                data.SetData("data", 1, d);
             }
         }
-
-        // Метод users.report |--------------------------------------------
+        //--------------------| Метод users.report |-----------------------
         /// <summary>
         /// Позволяет пожаловаться на пользователя.
+        /// Взвращает true, если жалоба отправлена
         /// </summary>
         /// <param name="type">тип жалобы, может принимать следующие значения:
         /// porn — порнографияж;
@@ -777,21 +795,28 @@ namespace VkNet
         /// insult — оскорбительное поведение;
         /// advertisment — рекламная страница, засоряющая поиск</param>
         /// <param name="comment">комментарий к жалобе на пользователя</param>
-        public void report(string type, string comment)
+        public bool report(string type, string comment)
         {
-            VkAPI.Users.report(ID, type, comment);
+            Dictionary<string, string> d = VkAPI.Users.report(ID, type, comment);
+            if (d.Keys.Count == 1) { return true; }
+            else
+            {
+                data.SetData("data", 1, d);
+                return false;
+            }
         }
         /// <summary>
         /// Позволяет пожаловаться на пользователя.
+        /// Взвращает true, если жалоба отправлена
         /// </summary>
         /// <param name="type">тип жалобы, может принимать следующие значения:
         /// porn — порнографияж;
         /// spam — рассылка спама;
         /// insult — оскорбительное поведение;
         /// advertisment — рекламная страница, засоряющая поиск</param>
-        public void report(string type)
+        public bool report(string type)
         {
-            report(type, "");
+            return report(type, "");
         }
     }
 

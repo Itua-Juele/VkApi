@@ -10,13 +10,13 @@ namespace VkNet
         /// </summary>
         public static class Account
         {
-            // Метод account.banUser |-----------------------------------------
+            //--------------------| Метод account.banUser |--------------------
             /// <summary>
             /// Добавляет пользователя в черный список
             /// </summary>
             /// <param name="user_id">идентификатор пользователя, которого нужно добавить в черный список</param>
             /// <param name="access_token">Ключ доступа пользователя</param>
-            public static string banUser(string user_id, string access_token)
+            public static Dictionary<string, string> banUser(string user_id, string access_token)
             {
                 string dataJson = VkJson.getResponse(String.Format("https://api.vk.com/method/account.banUser?user_id={0}&access_token={1}&version=5.62",
                     user_id, access_token));
@@ -25,16 +25,24 @@ namespace VkNet
                 {
                     if (VkJson.SearchKey("error", dataJson) == -1)
                     {
-                        return VkJson.GetValueDictionary("response", dataJson).Substring(1, 1);
+                        Dictionary<string, string> data = new Dictionary<string, string>();
+                        data.Add("response", VkJson.GetValueDictionary("response", dataJson));
+                        return data;
                     }
                     else
                     {
-                        return "error_code " + VkJson.ResponseError(dataJson)["error_code"];
+                        return VkJson.ResponseError(dataJson);
                     }
                 }
-                catch { return "Failed to process line: " + dataJson; }
+                catch
+                {
+                    Dictionary<string, string> data = new Dictionary<string, string>();
+                    data.Add("error", "Failed to process response");
+                    data.Add("response", dataJson);
+                    return data;
+                }
             }
-            // Метод account.changePassword |----------------------------------
+            //--------------------| Метод account.changePassword |-------------
             /// <summary>
             /// Позволяет сменить пароль пользователя после успешного восстановления доступа к аккаунту через СМС,
             /// используя метод auth.restore.
@@ -73,7 +81,7 @@ namespace VkNet
                     return data;
                 } 
             }
-            // Метод account.getActiveOffers |---------------------------------
+            //--------------------| Метод account.getActiveOffers |------------
             /// <summary>
             /// Возвращает список активных рекламных предложений (офферов),
             /// выполнив которые пользователь сможет получить соответствующее количество голосов на свой счёт внутри приложения
@@ -120,6 +128,39 @@ namespace VkNet
             public static Dictionary<string, string>[] getActiveOffers(string access_token)
             {
                 return getActiveOffers(access_token, 0, 100);
+            }
+            //--------------------| Метод account.getAppPermissions |----------
+            /// <summary>
+            /// Получает настройки текущего пользователя в данном приложении.
+            /// </summary>
+            /// <param name="user_id">идентификатор пользователя, информацию о настройках которого необходимо получить</param>
+            /// <param name="access_token">ключ доступа пользователя</param>
+            /// <returns>После успешного выполнения возвращает битовую маску настроек текущего пользователя в данном приложении</returns>
+            public static Dictionary<string, string> getAppPermissions(string user_id, string access_token)
+            {
+                string dataJson = VkJson.getResponse(String.Format("https://api.vk.com/method/account.getAppPermissions?" +
+                    "user_id={0}&access_token={1}&version=5.62", user_id, access_token));
+                // Попытка обработать и вернуть ответ
+                try
+                {
+                    if (VkJson.SearchKey("error", dataJson) == -1)
+                    {
+                        Dictionary<string, string> data = new Dictionary<string, string>();
+                        data.Add("response", VkJson.GetValueDictionary("response", dataJson));
+                        return data;
+                    }
+                    else
+                    {
+                        return VkJson.ResponseError(dataJson);
+                    }
+                }
+                catch
+                {
+                    Dictionary<string, string> data = new Dictionary<string, string>();
+                    data.Add("error", "Failed to process response");
+                    data.Add("response", dataJson);
+                    return data;
+                }
             }
         }
     }

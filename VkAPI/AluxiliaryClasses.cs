@@ -17,6 +17,10 @@ namespace VkNet
         private VkData data;
 
         /// <summary>
+        /// Идентификатор пользователя
+        /// </summary>
+        public string ID { get { return data.GetData("data", 0, "user_id"); } }
+        /// <summary>
         /// Ключ доступа пользователя (будет использоватся для всех внутрених методв).
         /// Исползуйте метод SaveAccessToken чтобы изменить его
         /// </summary>
@@ -45,20 +49,23 @@ namespace VkNet
         /// <summary>
         /// Конструктор класса Account
         /// </summary>
+        /// <param name="user_id">идентификатор пользователя</param>
         /// <param name="access_token">ключ доступа пользователя</param>
         /// <param name="date">дата создания ключа доступа</param>
-        public Account(string access_token, DateTime date)
+        public Account(string user_id, string access_token, DateTime date)
         {
             data = new VkData();
             data.SetData("data", new Dictionary<string, string>[2] { new Dictionary<string, string>(), new Dictionary<string, string>() });
+            data.SetData("data", 0, "user_id", user_id);
             SaveAccessToken(access_token, date);
         }
         /// <summary>
         /// Конструктор класса Account. Если использовать эту перегрузку, то будет использовано системное время
         /// для опредиления даты
         /// </summary>
+        /// <param name="user_id">идентификатор пользователя</param>
         /// <param name="access_token">ключ доступа пользователя</param>
-        public Account(string access_token): this(access_token, DateTime.Now) { }
+        public Account(string user_id, string access_token): this(user_id, access_token, DateTime.Now) { }
 
         /// <summary>
         /// Сохранить новый токен
@@ -93,24 +100,27 @@ namespace VkNet
             for (int i = 0; i < f.Length; i++) { f[i] = Convert.ToInt32(s[i]); }
             return new DateTime(f[2], f[1], f[0], f[3], f[4], f[5]);
         }
-        // Метод account.banUser |-----------------------------------------
+        //--------------------| Метод account.banUser |--------------------
         /// <summary>
         /// Добавляет пользователя в черный список
         /// </summary>
         /// <param name="user_id">идентификатор пользователя, которого нужно добавить в черный список</param>
         public void banUser(string user_id)
         {
-            string response = VkAPI.Account.banUser(user_id, AccessToken);
-            Dictionary<string, string> d = data.GetData("banUser", 0);
-            if (d != null) { data.SetData("banUser", 0, user_id, response); }
-            else
+            Dictionary<string, string> d1 = VkAPI.Account.banUser(user_id, AccessToken);
+            if (d1.Keys.Count == 1)
             {
-                d = new Dictionary<string, string>();
-                d.Add(user_id, response);
-                data.SetData("banUser", 0, d);
+                Dictionary<string, string> d = data.GetData("banUser", 0);
+                if (d != null) { data.SetData("banUser", 0, user_id, d1["response"]); }
+                else
+                {
+                    d = new Dictionary<string, string>();
+                    d.Add(user_id, d1["response"]);
+                    data.SetData("banUser", 0, d);
+                }
             }
         }
-        // Метод account.changePassword |----------------------------------
+        //--------------------| Метод account.changePassword |-------------
         /// <summary>
         /// Позволяет сменить пароль пользователя после успешного восстановления доступа к аккаунту через СМС,
         /// используя метод auth.restore.
@@ -134,7 +144,7 @@ namespace VkNet
                 if (d.ContainsKey("token")) { SaveAccessToken(d["token"]); }
             }
         }
-        // Метод account.getActiveOffers |---------------------------------
+        //--------------------| Метод account.getActiveOffers |------------
         /// <summary>
         /// Устанавливает список активных рекламных предложений (офферов),
         /// выполнив которые пользователь сможет получить соответствующее количество голосов на свой счёт внутри приложения

@@ -41,6 +41,7 @@ namespace VkNet
                     {
                         json = json.Substring(0, json.Length - 1);
                     }
+                    if ((json[0] == '"') & (json[json.Length -1] == '"')) { json = json.Substring(1, json.Length - 2); }
                 }
             }
             return json;
@@ -500,7 +501,7 @@ namespace VkNet
         /// <param name="dic_s">информация</param>
         public void SetData(string key, Dictionary<string, string>[] dic_s)
         {
-            if (GetData(key) == null)
+            if (!data.ContainsKey(key))
             {
                 data.Add(key, dic_s);
             }
@@ -510,16 +511,32 @@ namespace VkNet
             }
         }
         /// <summary>
-        /// В ключе key утанавливает словарь dic под номером number
+        /// В ключе key утанавливает или создает словарь dic под номером number
+        /// Если number больше чем dic.Length, то dic будет вставлен после последнего елемента
         /// </summary>
         /// <param name="key"></param>
         /// <param name="number"></param>
         /// <param name="dic"></param>
         public void SetData(string key, int number, Dictionary<string, string> dic)
         {
-            if (GetData(key, number) != null)
+            if (data.ContainsKey(key))
             {
-                data[key][number] = dic;
+                if (number <= data[key].Length)
+                {
+                    data[key][number] = dic;
+                }
+                else
+                {
+                    Dictionary<string, string>[] d1 = GetData(key);
+                    Dictionary<string, string>[] d2 = new Dictionary<string, string>[d1.Length + 1];
+                    for (int i = 0; i < d1.Length; i++) { d2[i] = d1[i]; }
+                    d2[d1.Length] = dic;
+                    data[key] = d2;
+                }
+            }
+            else
+            {
+                SetData(key, new Dictionary<string, string>[1] { dic });
             }
         }
         /// <summary>
@@ -531,16 +548,26 @@ namespace VkNet
         /// <param name="info"></param>
         public void SetData(string key, int number, string subkey, string info)
         {
-            if (GetData(key, number, subkey) != null)
+            if (data.ContainsKey(key))
             {
-                data[key][number][subkey] = info;
+                if (number <= data[key].Length)
+                {
+                    if (data[key][number].ContainsKey(subkey))
+                    {
+                        data[key][number][subkey] = info;
+                    }
+                    else
+                    {
+                        data[key][number].Add(subkey, info);
+                    }
+                }
+                else { }
             }
             else
             {
-                if (GetData(key, number) != null)
-                {
-                    data[key][number].Add(subkey, info);
-                }
+                Dictionary<string, string> d = new Dictionary<string, string>();
+                d.Add(subkey, info);
+                SetData(key, number, d);
             }
         }
     }
