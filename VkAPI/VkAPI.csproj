@@ -7,8 +7,8 @@
     <ProjectGuid>{CD25370C-3BC3-4701-BA8A-C210E192BF75}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>VkAPI</RootNamespace>
-    <AssemblyName>VkAPI</AssemblyName>
+    <RootNamespace>VkNet</RootNamespace>
+    <AssemblyName>vkNetApi</AssemblyName>
     <TargetFrameworkVersion>v2.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
@@ -21,7 +21,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <DocumentationFile>bin\Debug\VkAPI.xml</DocumentationFile>
+    <DocumentationFile>bin\Debug\vkNetApi.xml</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -40,6 +40,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AccountClass.cs" />
     <Compile Include="AluxiliaryClasses.cs" />
     <Compile Include="VkClass.cs" />
     <Compile Include="SettingsClasses.cs" />

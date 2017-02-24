@@ -1,12 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace VkAPI
+namespace VkNet
 {
     /// <summary>
     /// Клас для работы с VK API
     /// </summary>
-    public static partial class VK
+    public static partial class VkAPI
     {
         /// <summary>
         /// Класс для работы с Users методами
@@ -650,7 +650,7 @@ namespace VkAPI
         /// <param name="fields">параметры запроса</param>
         public void get(string[] fields, string name_case)
         {
-            Dictionary<string, string>[] d = VK.Users.get(new string[] { ID }, fields, name_case);
+            Dictionary<string, string>[] d = VkAPI.Users.get(new string[] { ID }, fields, name_case);
             if (d[0].ContainsKey("error_code"))
             {
                 data.SetData("error", d);
@@ -695,7 +695,7 @@ namespace VkAPI
         /// <param name="name_case">падеж для склонения имени и фамилии пользователя</param>
         public void getFollowers(int offset, int count, string[] fields, string name_case)
         {
-            Dictionary<string, string>[] d = VK.Users.getFollowers(ID, offset, count, fields, name_case);
+            Dictionary<string, string>[] d = VkAPI.Users.getFollowers(ID, offset, count, fields, name_case);
 
             if (d[0].ContainsKey("error_code"))
             {
@@ -756,7 +756,7 @@ namespace VkAPI
         /// </summary>
         public void isAppUser()
         {
-            string s = VK.Users.isAppUser(ID, AccessToken);
+            string s = VkAPI.Users.isAppUser(ID, AccessToken);
             if (s == "1")
             {
                 data.SetData("data", 0, "isAppUser", "true");
@@ -779,7 +779,7 @@ namespace VkAPI
         /// <param name="comment">комментарий к жалобе на пользователя</param>
         public void report(string type, string comment)
         {
-            VK.Users.report(ID, type, comment);
+            VkAPI.Users.report(ID, type, comment);
         }
         /// <summary>
         /// Позволяет пожаловаться на пользователя.

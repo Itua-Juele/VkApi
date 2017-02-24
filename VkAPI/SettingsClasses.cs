@@ -4,7 +4,7 @@ using System.Text.RegularExpressions;
 using System.Net;
 using System.IO;
 
-namespace VkAPI
+namespace VkNet
 {
     /// <summary>
     /// Класс для обработки ответов от сервера VK
@@ -98,12 +98,18 @@ namespace VkAPI
                 {
                     quotes++;
                 }
-                else if ((s == '"') & ((str[i + 1] == ',') | (str[i + 1] == '}')))
+                else if ((s == '"') & (quotes > 0))
                 {
-                    quotes--;
+                    if ((str[i + 1] == ',') | (str[i + 1] == '}'))
+                    {
+                        if (str[i - 1] != '\\')
+                        {
+                            quotes--;
+                        }
+                    }
                 }
 
-                if (quotes == 0)
+                    if (quotes == 0)
                 {
                     if (s == '[')
                     {
@@ -171,9 +177,15 @@ namespace VkAPI
                     {
                         quotes++;
                     }
-                    else if ((s == '"') & ((dictionary[i + 1] == ',') | (dictionary[i + 1] == '}')))
+                    else if ((s == '"') & (quotes > 0))
                     {
-                        quotes--;
+                        if ((dictionary[i + 1] == ',') | (dictionary[i + 1] == '}'))
+                        {
+                            if (dictionary[i - 1] != '\\')
+                            {
+                                quotes--;
+                            }
+                        }
                     }
 
                     if (quotes == 0)
@@ -220,9 +232,15 @@ namespace VkAPI
                 {
                     quotes++;
                 }
-                else if ((s == '"') & ((dataJson[i + 1] == ',') | (dataJson[i + 1] == '}')))
+                else if ((s == '"') & (quotes > 0))
                 {
-                    quotes--;
+                    if ((dataJson[i + 1] == ',') | (dataJson[i + 1] == '}'))
+                    {
+                        if (dataJson[i - 1] != '\\')
+                        {
+                            quotes--;
+                        }
+                    }
                 }
 
                 if (quotes == 0)
@@ -278,7 +296,7 @@ namespace VkAPI
         /// <param name="data">словар для заполнения</param>
         /// <param name="json">ответ сервера в json формате, без внешнего словаря response или error</param>
         /// <param name="key">значение, которое добавляется перед ключем</param>
-        public static void FillDictionary(ref Dictionary<string, string> data, string json, string key = "")
+        public static void FillDictionary(ref Dictionary<string, string> data, string json, string key)
         {
             string[] jsonLines = SerializeJson(json).Split('\n');
             if (data == null)
@@ -324,6 +342,15 @@ namespace VkAPI
                 }
             }
         }
+        /// <summary>
+        /// Заполняет словарь в соответствии с ответом сервера
+        /// </summary>
+        /// <param name="data">словар для заполнения</param>
+        /// <param name="json">ответ сервера в json формате, без внешнего словаря response или error</param>
+        public static void FillDictionary(ref Dictionary<string, string> data, string json)
+        {
+            FillDictionary(ref data, json, "");
+        }
 
         /// <summary>
         /// Преобразует строку Json в читабельный вид
@@ -356,7 +383,7 @@ namespace VkAPI
                     {
                         quotes++;
                     }
-                    else if ((s == '"') & ((dataJson[i + 1] == ',') | (dataJson[i + 1] == '}')))
+                    else if ((s == '"') & ((dataJson[i + 1] == ',') | (dataJson[i + 1] == '}')) & (dataJson[i - 1] != '\\'))
                     {
                         quotes--;
                     }

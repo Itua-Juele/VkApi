@@ -4,9 +4,9 @@ using System.Text.RegularExpressions;
 using System.Net;
 using System.IO;
 
-namespace VkAPI
+namespace VkNet
 {
-    public static partial class VK
+    public static partial class VkAPI
     {
         /// <summary>
         /// Возвращает список из значений, если ответ сервера имел вид
