@@ -331,15 +331,18 @@ namespace VkNet
             foreach (string line in jsonLines)
             {
                 keyValeu = line.Split(new char[] { ':' }, 2);
+                keyValeu[0] = keyValeu[0].Substring(1, keyValeu[0].Length - 2);
 
-                if (keyValeu[1].Substring(0, 1) == "{")
+                if (keyValeu[1][0] == '{')
                 // Если в значении value находится словарь
                 {
-                    FillDictionary(ref data, keyValeu[1], key + "*");
+                    FillDictionary(ref data, keyValeu[1], key + keyValeu[0] + "*");
                 }
                 else
                 {
-                    data.Add(key + keyValeu[0].Substring(1, keyValeu[0].Length - 2), keyValeu[1]);
+                    keyValeu[1] = keyValeu[1].Replace("\\\"", "\"");
+                    keyValeu[1] = keyValeu[1].Replace("\\\\", "\\");
+                    data.Add(key + keyValeu[0], keyValeu[1]);
                 }
             }
         }
@@ -512,7 +515,6 @@ namespace VkNet
         }
         /// <summary>
         /// В ключе key утанавливает или создает словарь dic под номером number
-        /// Если number больше чем dic.Length, то dic будет вставлен после последнего елемента
         /// </summary>
         /// <param name="key"></param>
         /// <param name="number"></param>
@@ -528,9 +530,9 @@ namespace VkNet
                 else
                 {
                     Dictionary<string, string>[] d1 = GetData(key);
-                    Dictionary<string, string>[] d2 = new Dictionary<string, string>[d1.Length + 1];
+                    Dictionary<string, string>[] d2 = new Dictionary<string, string>[number + 1];
                     for (int i = 0; i < d1.Length; i++) { d2[i] = d1[i]; }
-                    d2[d1.Length] = dic;
+                    d2[number] = dic;
                     data[key] = d2;
                 }
             }
@@ -561,7 +563,12 @@ namespace VkNet
                         data[key][number].Add(subkey, info);
                     }
                 }
-                else { }
+                else
+                {
+                    Dictionary<string, string> d = new Dictionary<string, string>();
+                    d.Add(subkey, info);
+                    SetData(key, number, d);
+                }
             }
             else
             {

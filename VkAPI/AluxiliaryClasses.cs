@@ -43,8 +43,27 @@ namespace VkNet
         public Dictionary<string, string>[] ActiveOffers { get { return data.GetData("getActiveOffers"); } }
         /// <summary>
         /// Количество активных рекламных предложений (офферов)
+        /// Используйте метод getActiveOffers, чтобы заполнить его
         /// </summary>
         public int CountActiveOffers { get { return Convert.ToInt32(data.GetData("data", 0, "countgetActiveOffers")); } }
+        /// <summary>
+        /// Cписок пользователей, находящихся в черном списке.
+        /// Используйте метод getBanned, чтобы заполнить его
+        /// </summary>
+        public Dictionary<string, string>[] Banned { get { return data.GetData("getBanned"); } }
+        /// <summary>
+        /// Количество пользователей, находящихся в черном списке.
+        /// Используйте метод getBanned, чтобы заполнить его
+        /// </summary>
+        public int CountBanned { get { return Convert.ToInt32(data.GetData("data", 0, "countgetBanned")); } }
+        /// <summary>
+        /// Информацию о текущем аккаунте
+        /// </summary>
+        public Dictionary<string, string> Info { get { return data.GetData("data", 2); } }
+        /// <summary>
+        /// Информацию о текущем профиле
+        /// </summary>
+        public Dictionary<string, string> ProfileInfo { get { return data.GetData("data", 3); } }
 
         /// <summary>
         /// Конструктор класса Account
@@ -55,7 +74,8 @@ namespace VkNet
         public Account(string user_id, string access_token, DateTime date)
         {
             data = new VkData();
-            data.SetData("data", new Dictionary<string, string>[2] { new Dictionary<string, string>(), new Dictionary<string, string>() });
+            data.SetData("data", new Dictionary<string, string>[2] { new Dictionary<string, string>(),
+                new Dictionary<string, string>() });
             data.SetData("data", 0, "user_id", user_id);
             SaveAccessToken(access_token, date);
         }
@@ -146,7 +166,7 @@ namespace VkNet
         }
         //--------------------| Метод account.getActiveOffers |------------
         /// <summary>
-        /// Устанавливает список активных рекламных предложений (офферов),
+        /// Определяет список активных рекламных предложений (офферов),
         /// выполнив которые пользователь сможет получить соответствующее количество голосов на свой счёт внутри приложения
         /// </summary>
         /// <param name="offset">смещение, необходимое для выборки определенного подмножества офферов</param>
@@ -170,7 +190,7 @@ namespace VkNet
             }
         }
         /// <summary>
-        /// Устанавливает список активных рекламных предложений (офферов),
+        /// Определяет список активных рекламных предложений (офферов),
         /// выполнив которые пользователь сможет получить соответствующее количество голосов на свой счёт внутри приложения
         /// </summary>
         /// <param name="offset">смещение, необходимое для выборки определенного подмножества офферов</param>
@@ -179,12 +199,74 @@ namespace VkNet
             getActiveOffers(offset, 100);
         }
         /// <summary>
-        /// Устанавливает список активных рекламных предложений (офферов),
+        /// Определяет список активных рекламных предложений (офферов),
         /// выполнив которые пользователь сможет получить соответствующее количество голосов на свой счёт внутри приложения
         /// </summary>
         public void getActiveOffers()
         {
             getActiveOffers(0, 100);
+        }
+        //--------------------| Метод account.getBanned |------------------
+        /// <summary>
+        /// Определяет список пользователей, находящихся в черном списке
+        /// </summary>
+        /// <param name="offset">смещение, необходимое для выборки определенного подмножества черного списка</param>
+        /// <param name="count">количество объектов, информацию о которых необходимо вернуть</param>
+        public void getBanned(int offset, int count)
+        {
+            Dictionary<string, string>[] d = VkAPI.Account.getBanned(AccessToken, offset, count);
+            if (d[0].ContainsKey("error_code"))
+            {
+                data.SetData("data", 1, d[0]);
+            }
+            else
+            {
+                data.SetData("data", 0, "countgetBanned", d[0]["count"]);
+                Dictionary<string, string>[] d1 = new Dictionary<string, string>[d.Length - 1];
+                for (int i = 0; i < d1.Length; i++)
+                {
+                    d1[i] = new Dictionary<string, string>(d[i + 1]);
+                }
+                data.SetData("getBanned", d1);
+            }
+        }
+        /// <summary>
+        /// Определяет список пользователей, находящихся в черном списке
+        /// </summary>
+        /// <param name="offset">смещение, необходимое для выборки определенного подмножества черного списка</param>
+        public void getBanned(int offset) { getBanned(offset, 20); }
+        /// <summary>
+        /// Определяет список пользователей, находящихся в черном списке
+        /// </summary>
+        public void getBanned() { getBanned(0, 20); }
+        //--------------------| Метод account.getCounters |----------------
+        /// <summary>
+        /// Возвращает ненулевые значения счетчиков пользователя
+        /// </summary>
+        /// <param name="filter">счетчики, информацию о которых нужно вернуть</param>
+        public Dictionary<string, string> getCounters(string[] filter)
+        {
+            return VkAPI.Account.getCounters(AccessToken, filter);
+        }
+        //--------------------| Метод account.getInfo |--------------------
+        /// <summary>
+        /// Возвращает информацию о текущем аккаунте
+        /// </summary>
+        /// <param name="filter">список полей, которые необходимо вернуть</param>
+        public void getInfo(string[] filter) { data.SetData("data", 2, VkAPI.Account.getInfo(AccessToken, filter)); }
+        /// <summary>
+        /// Возвращает информацию о текущем аккаунте
+        /// </summary>
+        public void getInfo() { data.SetData("data", 2, VkAPI.Account.getInfo(AccessToken, new string[0])); }
+        //--------------------| Метод account.getProfileInfo |-------------
+        /// <summary>
+        /// Определяет информацию о текущем профиле
+        /// </summary>
+        public void getProfileInfo() { data.SetData("data", 3, VkAPI.Account.getProfileInfo(AccessToken)); }
+        //--------------------| Метод account.getPushSettings |------------
+        public void getPushSettings(string device_id)
+        {
+            data.SetData("data", 4, VkAPI.Account.getPushSettings(AccessToken, device_id));
         }
     }
 }

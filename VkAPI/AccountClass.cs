@@ -162,6 +162,174 @@ namespace VkNet
                     return data;
                 }
             }
+            //--------------------| Метод account.getBanned |------------------
+            /// <summary>
+            /// Возвращает список пользователей, находящихся в черном списке
+            /// </summary>
+            /// <param name="access_token">ключ доступа пользователя</param>
+            /// <param name="offset">смещение, необходимое для выборки определенного подмножества черного списка</param>
+            /// <param name="count">количество объектов, информацию о которых необходимо вернуть</param>
+            /// <returns>Список пользователей, находящихся в черном списке</returns>
+            public static Dictionary<string, string>[] getBanned(string access_token, int offset, int count)
+            {
+                if (count > 200) { count = 200; }
+                string dataJson = VkJson.getResponse(String.Format("https://api.vk.com/method/account.getBanned?" +
+                    "access_token={0}&offset={1}&count={2}&version=5.62", access_token, offset, count));
+                try
+                {
+                    if (VkJson.SearchKey("error", dataJson) == -1)
+                    {
+                        return A_ListInKey("response",dataJson);
+                    }
+                    else { return new Dictionary<string, string>[1] { VkJson.ResponseError(dataJson) }; }
+                }
+                catch
+                {
+                    Dictionary<string, string> d = new Dictionary<string, string>();
+                    d.Add("error", "Failed to process the response");
+                    d.Add("response", dataJson);
+                    return new Dictionary<string, string>[1] { d };
+                }
+            }
+            /// <summary>
+            /// Возвращает список пользователей, находящихся в черном списке
+            /// </summary>
+            /// <param name="access_token">ключ доступа пользователя</param>
+            /// <param name="offset">смещение, необходимое для выборки определенного подмножества черного списка</param>
+            public static Dictionary<string, string>[] getBanned(string access_token, int offset)
+            {
+                return getBanned(access_token, offset, 20);
+            }
+            /// <summary>
+            /// Возвращает список пользователей, находящихся в черном списке
+            /// </summary>
+            /// <param name="access_token">ключ доступа пользователя</param>
+            public static Dictionary<string, string>[] getBanned(string access_token)
+            {
+                return getBanned(access_token, 0, 20);
+            }
+            //--------------------| Метод account.getCounters |----------------
+            /// <summary>
+            /// Возвращает ненулевые значения счетчиков пользователя
+            /// </summary>
+            /// <param name="access_token">ключ доступа пользователя</param>
+            /// <param name="filter">счетчики, информацию о которых нужно вернуть</param>
+            public static Dictionary<string, string> getCounters(string access_token, string[] filter)
+            {
+                if (filter.Length == 0) { filter = new string[1] { "friends,messages,photos,videos,notes,gifts,events,groups,notifications,sdk,app_requests" }; }
+                string dataJson = VkJson.getResponse(String.Format("https://api.vk.com/method/account.getCounters?" +
+                    "access_token={0}&filter={1}&version=5.62", access_token, String.Join(",", filter)));
+                try
+                {
+                    if (VkJson.SearchKey("error", dataJson) == -1)
+                    {
+                        Dictionary<string, string> data = new Dictionary<string, string>();
+                        VkJson.FillDictionary(ref data, VkJson.GetSubDictionary("response", dataJson));
+                        return data;
+                    }
+                    else { return VkJson.ResponseError(dataJson); }
+                }
+                catch
+                {
+                    Dictionary<string, string> data = new Dictionary<string, string>();
+                    data.Add("error", "Failed to process response");
+                    data.Add("response", dataJson);
+                    return data;
+                }
+            }
+            //--------------------| Метод account.getInfo |--------------------
+            /// <summary>
+            /// Возвращает информацию о текущем аккаунте
+            /// </summary>
+            /// <param name="access_token">ключ доступа пользователя</param>
+            /// <param name="filter">счетчики, информацию о которых нужно вернуть</param>
+            public static Dictionary<string, string> getInfo(string access_token, string[] filter)
+            {
+                string url = "https://api.vk.com/method/account.getInfo?access_token=" + access_token;
+                if (filter.Length != 0) { url += "&filter=" + String.Join(",", filter); }
+                url += "&version=5.62";
+                string dataJson = VkJson.getResponse(String.Format(url));
+                try
+                {
+                    if (VkJson.SearchKey("error", dataJson) == -1)
+                    {
+                        Dictionary<string, string> data = new Dictionary<string, string>();
+                        VkJson.FillDictionary(ref data, VkJson.GetSubDictionary("response", dataJson));
+                        return data;
+                    }
+                    else { return VkJson.ResponseError(dataJson); }
+                }
+                catch
+                {
+                    Dictionary<string, string> data = new Dictionary<string, string>();
+                    data.Add("error", "Failed to process response");
+                    data.Add("response", dataJson);
+                    return data;
+                }
+            }
+            /// <summary>
+            /// Возвращает информацию о текущем аккаунте
+            /// </summary>
+            /// <param name="access_token">ключ доступа пользователя</param>
+            public static Dictionary<string, string> getInfo(string access_token)
+            {
+                return getInfo(access_token, new string[0]);
+            }
+            //--------------------| Метод account.getProfileInfo |-------------
+            /// <summary>
+            /// Возвращает информацию о текущем профиле
+            /// </summary>
+            /// <param name="access_token">ключ доступа пользователя</param>
+            public static Dictionary<string, string> getProfileInfo(string access_token)
+            {
+                string dataJson = VkJson.getResponse(String.Format("https://api.vk.com/method/account.getProfileInfo?" +
+                    "access_token={0}&version=5.62", access_token));
+                try
+                {
+                    if (VkJson.SearchKey("error", dataJson) == -1)
+                    {
+                        Dictionary<string, string> data = new Dictionary<string, string>();
+                        VkJson.FillDictionary(ref data, VkJson.GetSubDictionary("response", dataJson));
+                        return data;
+                    }
+                    else { return VkJson.ResponseError(dataJson); }
+                }
+                catch
+                {
+                    Dictionary<string, string> data = new Dictionary<string, string>();
+                    data.Add("error", "Failed to process response");
+                    data.Add("response", dataJson);
+                    return data;
+                }
+            }
+            //--------------------| Метод account.getPushSettings |------------
+            /// <summary>
+            /// Позволяет получать настройки Push-уведомлений
+            /// </summary>
+            /// <param name="access_token">ключ доступа пользователя</param>
+            /// <param name="device_id">уникальный идентификатор устройства</param>
+            public static Dictionary<string, string> getPushSettings(string access_token, string device_id)
+            {
+                string dataJson = VkJson.getResponse(String.Format("https://api.vk.com/method/account.getPushSettings?" +
+                    "access_token={0}&device_id={1}&version=5.62", access_token, device_id));
+                try
+                {
+                    if (VkJson.SearchKey("error", dataJson) == -1)
+                    {
+                        Dictionary<string, string> data = new Dictionary<string, string>();
+                        VkJson.FillDictionary(ref data, VkJson.GetSubDictionary("response", dataJson));
+                        return data;
+                    }
+                    else { return VkJson.ResponseError(dataJson); }
+                }
+                catch
+                {
+                    Dictionary<string, string> data = new Dictionary<string, string>();
+                    data.Add("error", "Failed to process response");
+                    data.Add("response", dataJson);
+                    return data;
+                }
+            }
         }
     }
 }
