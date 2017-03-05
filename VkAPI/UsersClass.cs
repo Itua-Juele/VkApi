@@ -24,7 +24,9 @@ namespace VkNet
             public static Dictionary<string, string>[] get(string[] user_ids, string[] fields, string name_case)
             {
                 string url;
-                if (fields == null)
+                string ids;
+                fields = fields ?? new string[0];
+                if (fields.Length == 0)
                 {
                     url = String.Format("https://api.vk.com/method/users.get?user_ids={0}&fields=last_name&name_case={1}&version=5.62",
                     String.Join(",", user_ids), name_case);
@@ -38,7 +40,7 @@ namespace VkNet
                 // попытка обработать и вернуть ответ
                 try
                 {
-                    return A_ListValues(dataJson);
+                    return A_ListValues("response",dataJson);
                 }
                 catch
                 {
@@ -85,7 +87,8 @@ namespace VkNet
                     count = 1000;
                 }
                 string url;
-                if (fields == null)
+                fields = fields ?? new string[0];
+                if (fields.Length == 0)
                 {
                     url = String.Format("https://api.vk.com/method/users.getFollowers?user_id={0}&offset={1}&count={2}&name_case={3}&version=5.62",
                     user_id, offset, count, name_case);
@@ -170,7 +173,8 @@ namespace VkNet
                 string[] fields, int accuracy, int timeout, int radius, string name_case)
             {
                 string url;
-                if (fields == null)
+                fields = fields ?? new string[0];
+                if (fields.Length == 0)
                 {
                     url = String.Format("https://api.vk.com/method/users.getNearby?access_token={0}&latitude={1}&longitude={2}" +
                     "&accuracy={3}&timeout={4}&radius={5}&name_case={6}&version=5.62",
@@ -291,7 +295,8 @@ namespace VkNet
                 string url;
                 if (extended)
                 {
-                    if (fields == null)
+                    fields = fields ?? new string[0];
+                    if (fields.Length == 0)
                     {
                         url = String.Format("https://api.vk.com/method/users.getSubscriptions?user_id={0}&extended=1" +
                         "&offset={1}&count={2}&version=5.62", user_id, offset, count);
@@ -313,7 +318,7 @@ namespace VkNet
                         }
                         else if (s == '[')
                         {
-                            return A_ListValues(dataJson);
+                            return A_ListValues("response",dataJson);
                         }
                         else
                         {
@@ -514,7 +519,8 @@ namespace VkNet
                 if (settings.offset >= 0) { str += "&offset=" + settings.offset.ToString(); }
                 if (settings.count > 1000) { settings.count = 1000; }
                 if (settings.count >= 0) { str += "&count=" + settings.count.ToString(); }
-                if (settings.fields != null) { str += "&fields=" + String.Join(",", settings.fields); }
+                settings.fields = settings.fields ?? new string[0];
+                if (settings.fields.Length != 0) { str += "&fields=" + String.Join(",", settings.fields); }
                 if (settings.city >= 0) { str += "&city=" + settings.city.ToString(); }
                 if (settings.country >= 0) { str += "&country=" + settings.country.ToString(); }
                 if (settings.hometown != null) { str += "&hometown=" + settings.hometown; }
@@ -542,7 +548,8 @@ namespace VkNet
                 if (settings.company != null) { str += "&company=" + settings.company; }
                 if (settings.position != null) { str += "&position=" + settings.position; }
                 if (settings.group_id != null) { str += "&group_id=" + settings.group_id; }
-                if (settings.from_list != null) { str += "&from_list=" +String.Join(",",settings.from_list); }
+                settings.from_list = settings.from_list ?? new string[0];
+                if (settings.from_list.Length != 0) { str += "&from_list=" +String.Join(",",settings.from_list); }
 
                 string url = "https://api.vk.com/method/users.search?access_token=" + access_token + str + "&version=5.62";
                 string dataJson = VkJson.getResponse(url);

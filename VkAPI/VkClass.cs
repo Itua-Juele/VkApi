@@ -10,11 +10,12 @@ namespace VkNet
     {
         /// <summary>
         /// Возвращает список из значений, если ответ сервера имел вид
-        /// {"response":[{..},{..}, .. , {..}]}
+        /// {"name_key":[{..},{..}, .. , {..}]}
         /// </summary>
+        /// <param name="key">имя ключа в котором лежит список</param>
         /// <param name="dataJson">ответ сервера</param>
         /// <returns></returns>
-        internal static Dictionary<string, string>[] A_ListValues(string dataJson)
+        internal static Dictionary<string, string>[] A_ListValues(string key,string dataJson)
         {
             Dictionary<string, string>[] data;
             if (dataJson.Substring(2, 5) == "error")
@@ -23,7 +24,8 @@ namespace VkNet
             }
             else
             {
-                string[] response = VkJson.ListDictionary(dataJson.Substring(12, dataJson.Length - 13));
+                dataJson = VkJson.GetListDictionary(key, dataJson);
+                string[] response = VkJson.ListDictionary(dataJson);
                 data = new Dictionary<string, string>[response.Length];
                 for (int i = 0; i < response.Length; i++)
                 {
